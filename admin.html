@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIP 追溯管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F4F1;
+  --surface:#FFF;
+  --border:#E2E0DA;
+  --border2:#C8C6BE;
+  --text:#1A1917;
+  --text2:#6B6860;
+  --text3:#9B9990;
+  --accent:#1D5FA8;
+  --accent-bg:#EAF1FB;
+  --accent-text:#0C3F74;
+  --green:#1A7A4A;
+  --green-bg:#E6F4EC;
+  --amber:#8A5A00;
+  --amber-bg:#FEF3DC;
+  --red:#B83232;
+  --red-bg:#FCEAEA;
+  --purple:#4A3BAA;
+  --purple-bg:#EEEDFB;
+  --radius:10px;
+  --radius-sm:6px;
+}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.layout{display:flex;height:100vh}
+
+/* Sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-header{padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.sb-brand{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--text3);text-transform:uppercase}
+.sb-title{font-size:16px;font-weight:700;margin-top:3px}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.nav{padding:10px;flex:1}
+.nav-sec{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:10px 8px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;transition:all .12s;margin-bottom:2px;font-weight:500}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent-text)}
+.nav-item.active svg{opacity:1}
+.sb-footer{padding:12px 18px;border-top:1px solid var(--border)}
+.sb-link{display:block;font-size:12px;color:var(--accent);text-decoration:none;padding:8px 10px;background:var(--accent-bg);border-radius:var(--radius-sm);text-align:center;font-weight:700}
+.sb-link:hover{background:#D4E5F8}
+
+/* Main */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 26px;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between}
+.topbar-title{font-size:15px;font-weight:700}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.mono-badge{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.content{padding:22px 26px;flex:1}
+.page{display:none}.page.active{display:block}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px}
+.stat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.stat-val.green{color:var(--green)}
+.stat-val.red{color:var(--red)}
+
+/* Filter */
+.filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.fg input,.fg select{height:36px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;min-width:140px}
+.fg input:focus,.fg select:focus{border-color:var(--accent);background:var(--surface)}
+.btn{height:36px;padding:0 16px;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .12s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#154E8F}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--bg)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#125A36}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid #E8BBBB}.btn-red:hover{background:#F5D0D0}
+.btn-sm{height:28px;padding:0 10px;font-size:12px}
+
+/* Table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left;background:var(--bg);white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FAFAF7}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.b-op{background:var(--accent-bg);color:var(--accent-text)}
+.b-sup{background:var(--green-bg);color:var(--green)}
+.b-scan{background:var(--purple-bg);color:var(--purple)}
+.b-manual{background:var(--amber-bg);color:var(--amber)}
+.b-on{background:var(--green-bg);color:var(--green)}
+.b-off{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.b-en{background:var(--green-bg);color:var(--green)}
+.b-dis{background:var(--red-bg);color:var(--red)}
+
+/* Empty */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-ico{font-size:30px;margin-bottom:8px}
+.empty-t{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text2)}
+
+/* Trace timeline */
+.trace-list{display:flex;flex-direction:column}
+.trace-item{display:flex;gap:14px}
+.trace-spine{display:flex;flex-direction:column;align-items:center;width:22px;flex-shrink:0}
+.trace-dot{width:13px;height:13px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--accent-bg);flex-shrink:0;margin-top:3px}
+.trace-line{width:2px;flex:1;background:var(--border2);margin:3px 0;min-height:16px}
+.trace-body{flex:1;padding-bottom:16px}
+.trace-st{font-size:14px;font-weight:700;margin-bottom:6px}
+.trace-ops{display:flex;flex-direction:column;gap:5px}
+.trace-op{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.trace-emp{font-size:13px;font-weight:700}
+.trace-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:auto}
+.wo-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--accent-bg);border-radius:var(--radius-sm);margin-bottom:14px;border:1px solid #BFCFE8}
+.wo-id{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent-text)}
+.wo-stats{font-size:12px;color:var(--accent-text);opacity:.75;margin-left:auto}
+
+/* Master table actions */
+.tbl-actions{display:flex;gap:5px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal-bg.hidden{display:none}
+.modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:380px;max-width:92vw;box-shadow:0 4px 32px rgba(0,0,0,.15)}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:16px}
+.modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.modal-field label{font-size:12px;font-weight:700;color:var(--text3)}
+.modal-field input,.modal-field select{height:38px;padding:0 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);background:var(--bg);outline:none}
+.modal-field input:focus,.modal-field select:focus{border-color:var(--accent)}
+.modal-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* Result count */
+.res-meta{font-size:12px;color:var(--text3);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+/* Station grid */
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.st-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.st-card.online{border-color:#9FD8BA;background:#FAFFFE}
+.st-name{font-size:14px;font-weight:700;margin-bottom:8px}
+.op-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.av{width:28px;height:28px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent-text);flex-shrink:0}
+.op-name{font-size:13px;font-weight:700}
+.op-meta{font-size:11px;color:var(--text3)}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{width:180px;min-width:180px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .content{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand">DIP Traceability</div>
+    <div class="sb-title">追溯管理系統</div>
+    <div class="sb-sub">後台管理介面</div>
+  </div>
+  <div class="nav">
+    <div class="nav-sec">主資料管理</div>
+    <div class="nav-item active" onclick="nav('stations')" data-p="stations">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>工站管理
+    </div>
+    <div class="nav-item" onclick="nav('employees')" data-p="employees">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>員工管理
+    </div>
+    <div class="nav-sec">追溯查詢</div>
+    <div class="nav-item" onclick="nav('forward')" data-p="forward">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>正向追溯
+    </div>
+    <div class="nav-item" onclick="nav('reverse')" data-p="reverse">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>反向追溯
+    </div>
+    <div class="nav-item" onclick="nav('emprec')" data-p="emprec">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>員工記錄
+    </div>
+    <div class="nav-item" onclick="nav('live')" data-p="live">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>工站狀態
+    </div>
+  </div>
+  <div class="sb-footer">
+    <a href="index.html" class="sb-link">→ 前端操作介面</a>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="tb-title">工站管理</div>
+      <div class="topbar-sub" id="tb-sub">新增、編輯、啟用或停用工站</div>
+    </div>
+    <span class="mono-badge" id="clock">--:--:--</span>
+  </div>
+
+  <div class="content">
+
+    <!-- 工站管理 -->
+    <div id="page-stations" class="page active">
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px">
+        <span style="font-size:13px;color:var(--text2)">管理前端可用的工站清單，停用工站後前端掃碼將不被接受</span>
+        <button class="btn btn-green" onclick="openStModal()">＋ 新增工站</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tw">
+          <table>
+            <thead><tr><th>工站代號</th><th>工站名稱</th><th>說明</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="st-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 員工管理 -->
+    <div id="page-employees" class="page">
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px">
+        <span style="font-size:13px;color:var(--text2)">管理員工主檔，前端掃碼會比對此清單驗證員工身份</span>
+        <button class="btn btn-green" onclick="openEmpModal()">＋ 新增員工</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tw">
+          <table>
+            <thead><tr><th>員工編號</th><th>姓名</th><th>預設角色</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="emp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 正向追溯 -->
+    <div id="page-forward" class="page">
+      <div class="card">
+        <div class="filter-row">
+          <div class="fg"><label>工單號</label>
+            <input type="text" id="fwd-wo" placeholder="例：WO-20250526-001" style="min-width:220px">
+          </div>
+          <button class="btn btn-primary" onclick="runForward()">查詢</button>
+          <button class="btn btn-ghost" onclick="loadSampleForward()">載入範例</button>
+        </div>
+      </div>
+      <div id="fwd-result"></div>
+    </div>
+
+    <!-- 反向追溯 -->
+    <div id="page-reverse" class="page">
+      <div class="card">
+        <div class="filter-row">
+          <div class="fg"><label>工站</label><select id="rev-st"><option value="">全部工站</option></select></div>
+          <div class="fg"><label>開始時間</label><input type="datetime-local" id="rev-s"></div>
+          <div class="fg"><label>結束時間</label><input type="datetime-local" id="rev-e"></div>
+          <div class="fg"><label>員工（選填）</label><input type="text" id="rev-emp" placeholder="編號或姓名" style="min-width:120px"></div>
+          <button class="btn btn-primary" onclick="runReverse()">查詢</button>
+        </div>
+      </div>
+      <div id="rev-result"></div>
+    </div>
+
+    <!-- 員工記錄 -->
+    <div id="page-emprec" class="page">
+      <div class="card">
+        <div class="filter-row">
+          <div class="fg"><label>員工</label><select id="er-emp"><option value="">全部員工</option></select></div>
+          <div class="fg"><label>日期（起）</label><input type="date" id="er-ds"></div>
+          <div class="fg"><label>日期（迄）</label><input type="date" id="er-de"></div>
+          <div class="fg"><label>工站（選填）</label><select id="er-st"><option value="">全部工站</option></select></div>
+          <button class="btn btn-primary" onclick="runEmpRec()">查詢</button>
+        </div>
+      </div>
+      <div id="er-result"></div>
+    </div>
+
+    <!-- 工站狀態 -->
+    <div id="page-live" class="page">
+      <div id="live-stats" class="stat-grid"></div>
+      <div id="live-grid" class="st-grid"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 工站 Modal -->
+<div id="st-modal" class="modal-bg hidden">
+  <div class="modal">
+    <div class="modal-title" id="st-modal-title">新增工站</div>
+    <div class="modal-field"><label>工站代號</label><input type="text" id="st-id" placeholder="例：ST-01"></div>
+    <div class="modal-field"><label>工站名稱</label><input type="text" id="st-name" placeholder="例：插件站A"></div>
+    <div class="modal-field"><label>說明（選填）</label><input type="text" id="st-desc" placeholder="工站描述"></div>
+    <div class="modal-field"><label>狀態</label>
+      <select id="st-enabled"><option value="true">啟用</option><option value="false">停用</option></select>
+    </div>
+    <div id="st-err" style="font-size:12px;color:var(--red);display:none;margin-top:4px"></div>
+    <div class="modal-row">
+      <button class="btn btn-ghost" onclick="closeModal('st-modal')">取消</button>
+      <button class="btn btn-green" onclick="saveStation()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 員工 Modal -->
+<div id="emp-modal" class="modal-bg hidden">
+  <div class="modal">
+    <div class="modal-title" id="emp-modal-title">新增員工</div>
+    <div class="modal-field"><label>員工編號</label><input type="text" id="em-id" placeholder="例：E001"></div>
+    <div class="modal-field"><label>姓名</label><input type="text" id="em-name" placeholder="例：陳大明"></div>
+    <div class="modal-field"><label>預設角色</label>
+      <select id="em-role"><option value="operator">操作員</option><option value="support">支援</option></select>
+    </div>
+    <div class="modal-field"><label>狀態</label>
+      <select id="em-enabled"><option value="true">啟用</option><option value="false">停用</option></select>
+    </div>
+    <div id="em-err" style="font-size:12px;color:var(--red);display:none;margin-top:4px"></div>
+    <div class="modal-row">
+      <button class="btn btn-ghost" onclick="closeModal('emp-modal')">取消</button>
+      <button class="btn btn-green" onclick="saveEmployee()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── localStorage ──
+const LS = {
+  stations:  () => JSON.parse(localStorage.getItem('dip_stations')  || '[]'),
+  employees: () => JSON.parse(localStorage.getItem('dip_employees') || '[]'),
+  logs:      () => JSON.parse(localStorage.getItem('dip_logs')      || '[]'),
+  status:    () => JSON.parse(localStorage.getItem('dip_station_status') || '[]'),
+  save: (key, val) => localStorage.setItem('dip_' + key, JSON.stringify(val))
+};
+
+// ── Default seed data ──
+function seedDefaults() {
+  if (!LS.stations().length) {
+    LS.save('stations', [
+      {id:'ST-01',name:'插件站A',desc:'DIP插件工站',enabled:true},
+      {id:'ST-02',name:'焊接站B',desc:'波峰焊接',enabled:true},
+      {id:'ST-03',name:'檢驗站C',desc:'目視檢驗',enabled:true},
+      {id:'ST-04',name:'清洗站D',desc:'超音波清洗',enabled:true},
+      {id:'ST-05',name:'包裝站E',desc:'成品包裝',enabled:true},
+      {id:'ST-06',name:'測試站F',desc:'功能測試',enabled:false},
+    ]);
+  }
+  if (!LS.employees().length) {
+    LS.save('employees', [
+      {id:'E001',name:'陳大明',role:'operator',enabled:true},
+      {id:'E002',name:'林小芳',role:'operator',enabled:true},
+      {id:'E003',name:'王志豪',role:'operator',enabled:true},
+      {id:'E004',name:'張美玲',role:'support',enabled:true},
+      {id:'E005',name:'吳建國',role:'operator',enabled:true},
+      {id:'E006',name:'劉雅婷',role:'support',enabled:true},
+      {id:'E007',name:'趙偉強',role:'operator',enabled:false},
+    ]);
+  }
+  if (!LS.logs().length) {
+    const seed=[
+      {id:'R001',ts:'2025-05-26T08:05:00',workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
+      {id:'R002',ts:'2025-05-26T08:42:00',workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
+      {id:'R003',ts:'2025-05-26T09:15:00',workers:[{empId:'E003',empName:'王志豪',method:'scan',role:'operator'}],stationId:'ST-03',stationName:'檢驗站C',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
+      {id:'R004',ts:'2025-05-26T09:55:00',workers:[{empId:'E004',empName:'張美玲',method:'manual',role:'operator'},{empId:'E005',empName:'吳建國',method:'scan',role:'support'}],stationId:'ST-04',stationName:'清洗站D',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
+      {id:'R005',ts:'2025-05-26T10:30:00',workers:[{empId:'E005',empName:'吳建國',method:'scan',role:'operator'}],stationId:'ST-05',stationName:'包裝站E',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
+      {id:'R006',ts:'2025-05-26T11:00:00',workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'},{empId:'E006',empName:'劉雅婷',method:'scan',role:'support'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-20250526-002',orderMethod:'scan'},
+      {id:'R007',ts:'2025-05-26T11:45:00',workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250526-002',orderMethod:'manual'},
+      {id:'R008',ts:'2025-05-25T14:10:00',workers:[{empId:'E003',empName:'王志豪',method:'manual',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250525-001',orderMethod:'scan'},
+    ];
+    LS.save('logs', seed);
+  }
+}
+
+// ── Page meta ──
+const PAGE_META = {
+  stations:  ['工站管理',   '新增、編輯、啟用或停用工站'],
+  employees: ['員工管理',   '管理員工主檔，前端掃碼會比對此清單'],
+  forward:   ['正向追溯',   '輸入工單號，查出完整製程路徑與各站操作員'],
+  reverse:   ['反向追溯',   '輸入工站與時段，找出所有操作記錄'],
+  emprec:    ['員工操作記錄','依員工與日期篩選所有掃碼記錄'],
+  live:      ['工站在線狀況','即時顯示各工站目前在線人員'],
+};
+
+function nav(p) {
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.querySelector('[data-p="' + p + '"]').classList.add('active');
+  document.getElementById('tb-title').textContent = PAGE_META[p][0];
+  document.getElementById('tb-sub').textContent   = PAGE_META[p][1];
+  if (p === 'live') renderLive();
+  if (p === 'stations') renderStations();
+  if (p === 'employees') renderEmployees();
+}
+
+setInterval(()=>{ document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-TW'); },1000);
+document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-TW');
+
+// ── Helpers ──
+function badge(cls,t){return`<span class="badge ${cls}">${t}</span>`}
+function roleBadge(r){return r==='operator'?badge('b-op','操作員'):badge('b-sup','支援')}
+function inputBadge(i){return i==='scan'?badge('b-scan','掃碼'):badge('b-manual','手動')}
+function fmtTs(ts){return ts.replace('T',' ').slice(0,16)}
+function emptyHtml(t,s){return`<div class="card"><div class="empty"><div class="empty-ico">🔍</div><div class="empty-t">${t}</div><div>${s}</div></div></div>`}
+
+function tableHtml(headers, rows, meta) {
+  return `<div class="card"><div class="res-meta">${meta}</div><div class="tw">
+    <table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div></div>`;
+}
+
+// ── 工站管理 ──
+function renderStations() {
+  const stations = LS.stations();
+  const el = document.getElementById('st-tbody');
+  if (!stations.length) { el.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text3)">尚無工站資料</td></tr>`; return; }
+  el.innerHTML = stations.map((s,i) => `
+    <tr>
+      <td><span class="mono">${s.id}</span></td>
+      <td style="font-weight:700">${s.name}</td>
+      <td style="color:var(--text2)">${s.desc||'—'}</td>
+      <td>${s.enabled?badge('b-en','啟用'):badge('b-dis','停用')}</td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editStation(${i})">編輯</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStation(${i})">${s.enabled?'停用':'啟用'}</button>
+        <button class="btn btn-red btn-sm" onclick="deleteStation(${i})">刪除</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+let editStIdx = -1;
+function openStModal(idx) {
+  editStIdx = idx !== undefined ? idx : -1;
+  const modal = document.getElementById('st-modal');
+  if (editStIdx >= 0) {
+    const s = LS.stations()[editStIdx];
+    document.getElementById('st-modal-title').textContent = '編輯工站';
+    document.getElementById('st-id').value = s.id;
+    document.getElementById('st-id').disabled = true;
+    document.getElementById('st-name').value = s.name;
+    document.getElementById('st-desc').value = s.desc||'';
+    document.getElementById('st-enabled').value = String(s.enabled);
+  } else {
+    document.getElementById('st-modal-title').textContent = '新增工站';
+    document.getElementById('st-id').value=''; document.getElementById('st-id').disabled=false;
+    document.getElementById('st-name').value=''; document.getElementById('st-desc').value='';
+    document.getElementById('st-enabled').value='true';
+  }
+  hideErr2('st-err');
+  modal.classList.remove('hidden');
+}
+function saveStation() {
+  const id = document.getElementById('st-id').value.trim();
+  const name = document.getElementById('st-name').value.trim();
+  if (!id||!name){showErr2('st-err','工站代號與名稱為必填');return;}
+  const stations = LS.stations();
+  if (editStIdx < 0 && stations.find(s=>s.id.toLowerCase()===id.toLowerCase())) {
+    showErr2('st-err','此工站代號已存在');return;
+  }
+  const obj = {id:editStIdx>=0?stations[editStIdx].id:id, name, desc:document.getElementById('st-desc').value.trim(), enabled:document.getElementById('st-enabled').value==='true'};
+  if (editStIdx >= 0) stations[editStIdx] = obj; else stations.push(obj);
+  LS.save('stations', stations);
+  closeModal('st-modal');
+  renderStations();
+  refreshSelectLists();
+}
+function editStation(i) { openStModal(i); }
+function toggleStation(i) {
+  const s = LS.stations(); s[i].enabled = !s[i].enabled; LS.save('stations',s); renderStations();
+}
+function deleteStation(i) {
+  if (!confirm('確定刪除此工站？')) return;
+  const s = LS.stations(); s.splice(i,1); LS.save('stations',s); renderStations(); refreshSelectLists();
+}
+
+// ── 員工管理 ──
+function renderEmployees() {
+  const emps = LS.employees();
+  const el = document.getElementById('emp-tbody');
+  if (!emps.length) { el.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text3)">尚無員工資料</td></tr>`; return; }
+  el.innerHTML = emps.map((e,i) => `
+    <tr>
+      <td><span class="mono">${e.id}</span></td>
+      <td style="font-weight:700">${e.name}</td>
+      <td>${roleBadge(e.role)}</td>
+      <td>${e.enabled?badge('b-en','啟用'):badge('b-dis','停用')}</td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editEmployee(${i})">編輯</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleEmployee(${i})">${e.enabled?'停用':'啟用'}</button>
+        <button class="btn btn-red btn-sm" onclick="deleteEmployee(${i})">刪除</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+let editEmpIdx = -1;
+function openEmpModal(idx) {
+  editEmpIdx = idx !== undefined ? idx : -1;
+  if (editEmpIdx >= 0) {
+    const e = LS.employees()[editEmpIdx];
+    document.getElementById('emp-modal-title').textContent = '編輯員工';
+    document.getElementById('em-id').value = e.id; document.getElementById('em-id').disabled = true;
+    document.getElementById('em-name').value = e.name;
+    document.getElementById('em-role').value = e.role;
+    document.getElementById('em-enabled').value = String(e.enabled);
+  } else {
+    document.getElementById('emp-modal-title').textContent = '新增員工';
+    document.getElementById('em-id').value=''; document.getElementById('em-id').disabled=false;
+    document.getElementById('em-name').value=''; document.getElementById('em-role').value='operator'; document.getElementById('em-enabled').value='true';
+  }
+  hideErr2('em-err');
+  document.getElementById('emp-modal').classList.remove('hidden');
+}
+function saveEmployee() {
+  const id = document.getElementById('em-id').value.trim();
+  const name = document.getElementById('em-name').value.trim();
+  if (!id||!name){showErr2('em-err','員工編號與姓名為必填');return;}
+  const emps = LS.employees();
+  if (editEmpIdx < 0 && emps.find(e=>e.id.toLowerCase()===id.toLowerCase())) {
+    showErr2('em-err','此員工編號已存在');return;
+  }
+  const obj={id:editEmpIdx>=0?emps[editEmpIdx].id:id, name, role:document.getElementById('em-role').value, enabled:document.getElementById('em-enabled').value==='true'};
+  if (editEmpIdx>=0) emps[editEmpIdx]=obj; else emps.push(obj);
+  LS.save('employees',emps);
+  closeModal('emp-modal');
+  renderEmployees();
+  refreshSelectLists();
+}
+function editEmployee(i){openEmpModal(i);}
+function toggleEmployee(i){const e=LS.employees();e[i].enabled=!e[i].enabled;LS.save('employees',e);renderEmployees();}
+function deleteEmployee(i){if(!confirm('確定刪除此員工？'))return;const e=LS.employees();e.splice(i,1);LS.save('employees',e);renderEmployees();refreshSelectLists();}
+
+// ── 下拉選單同步 ──
+function refreshSelectLists() {
+  const stations = LS.stations();
+  const emps = LS.employees();
+  ['rev-st','er-st'].forEach(sid=>{
+    const sel=document.getElementById(sid);
+    const cur=sel.value;
+    sel.innerHTML='<option value="">全部工站</option>';
+    stations.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+    sel.value=cur;
+  });
+  const erEmp=document.getElementById('er-emp');
+  const cur=erEmp.value;
+  erEmp.innerHTML='<option value="">全部員工</option>';
+  emps.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name+'（'+e.id+'）';erEmp.appendChild(o);});
+  erEmp.value=cur;
+}
+
+// ── 正向追溯 ──
+function loadSampleForward(){document.getElementById('fwd-wo').value='WO-20250526-001';runForward();}
+function runForward() {
+  const wo = document.getElementById('fwd-wo').value.trim();
+  const el = document.getElementById('fwd-result');
+  if (!wo){el.innerHTML=emptyHtml('請輸入工單號','在上方填入工單號後查詢');return;}
+  const rows = LS.logs().filter(r=>r.workOrderId.toLowerCase()===wo.toLowerCase()).sort((a,b)=>a.ts.localeCompare(b.ts));
+  if (!rows.length){el.innerHTML=emptyHtml('找不到記錄','工單號 '+wo+' 沒有相關掃碼記錄');return;}
+  const stMap={};
+  rows.forEach(r=>{if(!stMap[r.stationId])stMap[r.stationId]={name:r.stationName,ops:[],ts:r.ts};stMap[r.stationId].ops.push(r);});
+  const stations=Object.values(stMap).sort((a,b)=>a.ts.localeCompare(b.ts));
+  let html=`<div class="card"><div class="wo-header"><div style="font-size:12px;font-weight:700;color:var(--accent-text);margin-bottom:2px">工單號</div><div class="wo-id">${wo}</div><div class="wo-stats">${stations.length} 工站 · ${rows.length} 筆記錄</div></div><div class="trace-list">`;
+  stations.forEach((st,i)=>{
+    html+=`<div class="trace-item"><div class="trace-spine"><div class="trace-dot"></div>${i<stations.length-1?'<div class="trace-line"></div>':''}</div><div class="trace-body"><div class="trace-st">${st.name}</div><div class="trace-ops">`;
+    st.ops.forEach(r=>{
+      html+=`<div class="trace-op">`;
+      r.workers.forEach(w=>{html+=`<div class="av">${w.empName.slice(-1)}</div><span class="trace-emp">${w.empName}</span><span class="mono">${w.empId}</span>${roleBadge(w.role)}${inputBadge(w.method)}`;});
+      html+=`<span class="trace-time">${fmtTs(r.ts)}</span></div>`;
+    });
+    html+=`</div></div></div>`;
+  });
+  html+=`</div></div>`;
+  el.innerHTML=html;
+}
+
+// ── 反向追溯 ──
+function runReverse() {
+  const sid=document.getElementById('rev-st').value;
+  const s=document.getElementById('rev-s').value;
+  const e=document.getElementById('rev-e').value;
+  const empF=document.getElementById('rev-emp').value.trim().toLowerCase();
+  const el=document.getElementById('rev-result');
+  const rows=LS.logs().filter(r=>{
+    const inSt=!sid||r.stationId===sid;
+    const inT=(!s||r.ts>=s+':00')&&(!e||r.ts<=e+':59');
+    const inEmp=!empF||r.workers.some(w=>w.empId.toLowerCase().includes(empF)||w.empName.includes(empF));
+    return inSt&&inT&&inEmp;
+  }).sort((a,b)=>a.ts.localeCompare(b.ts));
+  if(!rows.length){el.innerHTML=emptyHtml('無符合記錄','請調整篩選條件後重試');return;}
+  el.innerHTML=tableHtml(
+    ['時間','工站','員工','工單號','輸入方式'],
+    rows.map(r=>[
+      fmtTs(r.ts), r.stationName,
+      r.workers.map(w=>`<span style="font-weight:700">${w.empName}</span> <span class="mono">${w.empId}</span> ${roleBadge(w.role)}`).join('<br>'),
+      `<span class="mono">${r.workOrderId}</span>`,
+      r.workers.map(w=>inputBadge(w.method)).join('')+inputBadge(r.stationMethod)
+    ]),
+    `共 ${rows.length} 筆記錄`
+  );
+}
+
+// ── 員工記錄 ──
+function runEmpRec() {
+  const eid=document.getElementById('er-emp').value;
+  const ds=document.getElementById('er-ds').value;
+  const de=document.getElementById('er-de').value;
+  const stF=document.getElementById('er-st').value;
+  const el=document.getElementById('er-result');
+  const rows=LS.logs().filter(r=>{
+    const d=r.ts.slice(0,10);
+    const inEmp=!eid||r.workers.some(w=>w.empId===eid);
+    return inEmp&&(!ds||d>=ds)&&(!de||d<=de)&&(!stF||r.stationId===stF);
+  }).sort((a,b)=>b.ts.localeCompare(a.ts));
+  if(!rows.length){el.innerHTML=emptyHtml('無符合記錄','請調整篩選條件後重試');return;}
+  el.innerHTML=tableHtml(
+    ['時間','員工','工站','工單號','角色','輸入方式'],
+    rows.map(r=>r.workers.map(w=>[
+      fmtTs(r.ts),
+      `<span style="font-weight:700">${w.empName}</span><br><span class="mono">${w.empId}</span>`,
+      r.stationName,
+      `<span class="mono">${r.workOrderId}</span>`,
+      roleBadge(w.role), inputBadge(w.method)
+    ])).flat(),
+    `共 ${rows.length} 筆記錄`
+  );
+}
+
+// ── 工站狀態 ──
+function renderLive() {
+  const status = LS.status();
+  const stations = LS.stations();
+  // 補上後台有但狀態中沒有的工站（顯示為空閒）
+  const stMap = {};
+  status.forEach(s=>stMap[s.stationId]=s);
+  const full = stations.map(s => stMap[s.id] || { stationId:s.id, stationName:s.name, operators:[] });
+
+  const online = full.filter(s=>s.operators.length>0);
+  const totalOps = full.reduce((a,s)=>a+s.operators.length,0);
+  const today = LS.logs().filter(r=>r.ts.startsWith(new Date().toISOString().slice(0,10))).length;
+
+  document.getElementById('live-stats').innerHTML=[
+    ['在線工站', online.length+' / '+full.length],
+    ['在線人員', totalOps+''],
+    ['空閒工站', (full.length-online.length)+''],
+    ['今日記錄', today+''],
+  ].map(([l,v])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val">${v}</div></div>`).join('');
+
+  document.getElementById('live-grid').innerHTML=full.map(s=>{
+    const active=s.operators.length>0;
+    return`<div class="st-card${active?' online':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="st-name">${s.stationName||s.stationId}</div>
+        ${active?badge('b-on','在線'):badge('b-off','空閒')}
+      </div>
+      ${active?s.operators.map(op=>`<div class="op-row"><div class="av">${op.empName.slice(-1)}</div><div><div class="op-name">${op.empName}</div><div class="op-meta">${op.empId} · ${op.role==='operator'?'操作員':'支援'} · ${op.since} 起</div></div></div>`).join(''):'<div class="op-meta" style="padding:4px 0">目前無人</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── Modal helpers ──
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function showErr2(id,msg){const el=document.getElementById(id);el.style.display='';el.textContent=msg;}
+function hideErr2(id){document.getElementById(id).style.display='none';}
+
+// 點 modal 背景關閉
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.add('hidden');});});
+
+// ── 預設時間 ──
+document.getElementById('rev-s').value='2025-05-26T08:00';
+document.getElementById('rev-e').value='2025-05-26T18:00';
+document.getElementById('er-ds').value='2025-05-25';
+document.getElementById('er-de').value='2025-05-26';
+
+// ── Init ──
+seedDefaults();
+renderStations();
+refreshSelectLists();
+</script>
+</body>
+</html>
