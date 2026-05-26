@@ -699,14 +699,19 @@ document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',
 
 // ── 重置範例資料 ──
 function resetSeed() {
-  if (!confirm('確定重置所有範例資料？
-（現有的工站、員工、記錄、狀態都會被清除並重新填入）')) return;
+  // 強制清除所有 key（不用 confirm，避免平板 block）
   ['stations','employees','logs','station_status'].forEach(k => localStorage.removeItem('dip_' + k));
   seedDefaults();
   renderStations();
   renderEmployees();
   refreshSelectLists();
-  alert('範例資料已重置，工站狀態頁也已更新。');
+  // 更新按鈕文字給視覺回饋
+  document.querySelectorAll('[onclick="resetSeed()"]').forEach(btn => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ 已重置';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+  });
 }
 
 // ── 預設時間（動態用今天日期）──
