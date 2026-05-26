@@ -540,10 +540,11 @@ function submitRecord() {
   };
   const logs = getLogs(); logs.unshift(record); saveLogs(logs.slice(0,200));
   const status = getStatus();
-  const ops = S.workers.map((w,i) => ({ empId:w.id, empName:w.name, role:i===0?'operator':'support', since:now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) }));
+  const sinceStr = now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const ops = S.workers.map((w,i) => ({ empId:w.id, empName:w.name, role:i===0?'operator':'support', since:sinceStr }));
   const idx = status.findIndex(s => s.stationId === S.station);
-  if (idx >= 0) status[idx].operators = ops;
-  else status.push({ stationId: S.station, stationName: S.stationName, operators: ops });
+  if (idx >= 0) { status[idx].operators = ops; status[idx].workOrderId = S.order; status[idx].since = sinceStr; }
+  else status.push({ stationId: S.station, stationName: S.stationName, operators: ops, workOrderId: S.order, since: sinceStr });
   saveStatus(status);
   document.getElementById('savedId').textContent = 'ID: '+record.id;
   goStep(4);
