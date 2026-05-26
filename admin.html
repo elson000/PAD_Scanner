@@ -38,7 +38,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .sb-brand{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--text3);text-transform:uppercase}
 .sb-title{font-size:16px;font-weight:700;margin-top:3px}
 .sb-sub{font-size:11px;color:var(--text3);margin-top:2px}
-.nav{padding:10px;flex:1}
+.nav{padding:10px;flex:1;overflow-y:auto}
 .nav-sec{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:10px 8px 5px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;transition:all .12s;margin-bottom:2px;font-weight:500}
 .nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
@@ -203,7 +203,10 @@ tbody tr:hover td{background:#FAFAF7}
       <div class="topbar-title" id="tb-title">工站管理</div>
       <div class="topbar-sub" id="tb-sub">新增、編輯、啟用或停用工站</div>
     </div>
-    <span class="mono-badge" id="clock">--:--:--</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="resetSeed()" style="height:32px;padding:0 12px;font-size:12px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid #E8C870;border-radius:6px;cursor:pointer;font-family:inherit">↺ 重置範例資料</button>
+      <span class="mono-badge" id="clock">--:--:--</span>
+    </div>
   </div>
 
   <div class="content">
