@@ -2,142 +2,146 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>DIP 產線操作介面</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F0EEE9;
-  --surface:#FFFFFF;
-  --border:#DDD9D0;
-  --border2:#B8B4AA;
-  --text:#18170F;
-  --text2:#6A6860;
-  --text3:#9B9890;
-  --accent:#1D4FA8;
-  --accent-bg:#EAF0FB;
-  --green:#1A7A4A;
-  --green-bg:#E6F4EC;
-  --green-border:#9FD8BA;
-  --amber:#8A5A00;
-  --amber-bg:#FEF3DC;
-  --red:#B83232;
-  --red-bg:#FCEAEA;
-  --purple:#4A3BAA;
-  --purple-bg:#EEEDFB;
-  --radius:12px;
-  --radius-sm:8px;
+  --bg:#F0EEE9;--surface:#FFF;--border:#DDD9D0;--border2:#B8B4AA;
+  --text:#18170F;--text2:#6A6860;--text3:#9B9890;
+  --accent:#1D4FA8;--accent-bg:#EAF0FB;
+  --green:#1A7A4A;--green-bg:#E6F4EC;--green-bd:#9FD8BA;
+  --amber:#8A5A00;--amber-bg:#FEF3DC;
+  --red:#B83232;--red-bg:#FCEAEA;
+  --purple:#4A3BAA;--purple-bg:#EEEDFB;
+  --radius:12px;--radius-sm:8px;
 }
 html,body{height:100%;background:var(--bg);font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--text)}
 .app{max-width:480px;margin:0 auto;padding:16px;min-height:100vh}
-
-/* Header */
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .header-title{font-size:17px;font-weight:700}
-.header-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.header-sub{font-size:11px;color:var(--text3);margin-top:2px}
 .admin-link{font-size:12px;color:var(--accent);text-decoration:none;padding:6px 12px;border:1px solid var(--accent-bg);border-radius:20px;background:var(--accent-bg)}
-
-/* Step bar */
-.step-bar{display:flex;gap:6px;margin-bottom:20px;align-items:center}
+.step-bar{display:flex;gap:6px;margin-bottom:18px;align-items:center}
 .step-seg{flex:1;height:5px;border-radius:3px;background:var(--border);transition:background .3s}
 .step-seg.done{background:var(--green)}
 .step-seg.active{background:var(--accent)}
 .step-label{font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap}
-
-/* Card */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
-.card-title{font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+
+/* Camera button */
+.btn-camera{width:100%;height:52px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:all .15s}
+.btn-camera:active{transform:scale(.97)}
+.btn-camera svg{flex-shrink:0}
 
 /* Scan target */
-.scan-target{display:flex;align-items:center;gap:12px;background:var(--bg);border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;min-height:56px;transition:all .2s}
-.scan-target:active{transform:scale(.98)}
-.scan-target.filled{background:var(--green-bg);border:1.5px solid var(--green-border);cursor:default}
+.scan-target{display:flex;align-items:center;gap:12px;background:var(--bg);border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:12px 14px;min-height:50px;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.scan-target.filled{background:var(--green-bg);border:1.5px solid var(--green-bd);cursor:default}
 .scan-target.error{background:var(--red-bg);border:1.5px solid #EEB0B0}
-.scan-ico{font-size:22px;flex-shrink:0}
-.scan-ph{font-size:14px;color:var(--text3)}
+.scan-ico{font-size:20px;flex-shrink:0}
+.scan-ph{font-size:13px;color:var(--text3)}
 .scan-val{font-size:14px;font-weight:700;color:var(--text);flex:1}
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
-.badge-scan{background:var(--purple-bg);color:var(--purple)}
-.badge-manual{background:var(--amber-bg);color:var(--amber)}
-.badge-op{background:var(--accent-bg);color:var(--accent)}
-.badge-sup{background:var(--green-bg);color:var(--green)}
 
-/* Worker chips */
-.workers-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
-.worker-chip{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm)}
-.w-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0}
-.w-name{font-size:13px;font-weight:700;flex:1}
-.w-rm{background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;line-height:1;padding:0 4px}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.b-scan{background:var(--purple-bg);color:var(--purple)}
+.b-manual{background:var(--amber-bg);color:var(--amber)}
+.b-camera{background:#E8F4FF;color:#0055AA}
+.b-op{background:var(--accent-bg);color:var(--accent)}
+.b-sup{background:var(--green-bg);color:var(--green)}
 
 /* Input row */
-.input-row{display:flex;gap:8px;margin-top:10px}
-.input-row input{flex:1;height:42px;padding:0 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none}
+.input-row{display:flex;gap:8px}
+.input-row input{flex:1;height:40px;padding:0 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none}
 .input-row input:focus{border-color:var(--accent)}
-.input-row button{height:42px;padding:0 16px;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;white-space:nowrap}
-.btn-scan{background:var(--purple-bg);color:var(--purple)}
-.btn-manual{background:var(--amber-bg);color:var(--amber)}
+.input-row button{height:40px;padding:0 14px;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;white-space:nowrap}
+.btn-scan-small{background:var(--purple-bg);color:var(--purple)}
+.btn-manual-small{background:var(--amber-bg);color:var(--amber)}
 .btn-add{background:var(--accent-bg);color:var(--accent)}
+.hint{font-size:11px;color:var(--text3);margin-top:6px}
 
-/* Add worker section */
+/* Workers */
+.workers-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.worker-chip{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--radius-sm)}
+.w-av{width:28px;height:28px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0}
+.w-name{font-size:13px;font-weight:700;flex:1}
+.w-rm{background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:0 4px}
 .add-section{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-.add-title{font-size:12px;color:var(--text3);margin-bottom:8px}
+.add-title{font-size:11px;color:var(--text3);font-weight:700;margin-bottom:8px}
 
-/* Nav buttons */
+/* Nav */
 .nav-row{display:flex;gap:8px;margin-top:4px}
 .btn-next{flex:1;height:48px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s}
 .btn-next:disabled{background:var(--border);color:var(--text3);cursor:default}
 .btn-next:not(:disabled):active{transform:scale(.98)}
 .btn-back{height:48px;padding:0 18px;background:var(--surface);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:14px;cursor:pointer}
+.err-msg{font-size:12px;color:var(--red);margin-top:6px;padding:7px 10px;background:var(--red-bg);border-radius:var(--radius-sm);display:none}
 
-/* Error msg */
-.err-msg{font-size:12px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-bg);border-radius:var(--radius-sm)}
-
-/* Confirm card */
+/* Confirm */
 .confirm-row{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
 .confirm-row:last-child{border-bottom:none}
-.confirm-key{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;width:52px;flex-shrink:0;padding-top:2px;letter-spacing:.04em}
+.confirm-key{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;width:48px;flex-shrink:0;padding-top:3px;letter-spacing:.04em}
 .confirm-vals{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .confirm-chip{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;background:var(--bg);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
-.btn-submit{width:100%;height:52px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:16px;transition:all .15s}
+.btn-submit{width:100%;height:52px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:all .15s}
 .btn-submit:active{transform:scale(.98)}
 
 /* Success */
-.success-box{text-align:center;padding:32px 20px}
-.success-icon{font-size:52px;margin-bottom:12px}
+.success-box{text-align:center;padding:28px 20px}
+.success-icon{font-size:50px;margin-bottom:10px}
 .success-title{font-size:20px;font-weight:700;margin-bottom:4px}
-.success-sub{font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
-.btn-new{width:100%;height:50px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:20px}
+.success-sub{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.btn-new{width:100%;height:50px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px}
 
-/* Log section */
-.log-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+/* Log */
+.log-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px}
 .log-item:last-child{border-bottom:none}
-.log-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px}
+.log-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px}
 .log-main{flex:1}
 .log-title{font-size:13px;font-weight:700}
 .log-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace}
 .log-time{font-size:11px;color:var(--text3);white-space:nowrap}
-.btn-clear{font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;padding:0;margin-top:8px}
+.btn-clear{font-size:12px;color:var(--red);background:none;border:none;cursor:pointer}
 
-/* No config warning */
-.warn-box{background:var(--amber-bg);border:1px solid #F0C060;border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--amber);margin-bottom:14px}
+/* Warning */
+.warn-box{background:var(--amber-bg);border:1px solid #F0C060;border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--amber);margin-bottom:14px;display:none}
+
+/* ── Camera Overlay ── */
+#camOverlay{position:fixed;inset:0;background:#000;z-index:200;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s ease}
+#camOverlay.open{transform:translateY(0)}
+#camVideo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.cam-top{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent)}
+.cam-label{color:#fff;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif}
+.cam-close{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cam-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:240px;height:240px;z-index:5}
+.cam-corner{position:absolute;width:22px;height:22px;border-color:#fff;border-style:solid;border-width:0}
+.cam-corner.tl{top:0;left:0;border-top-width:3px;border-left-width:3px}
+.cam-corner.tr{top:0;right:0;border-top-width:3px;border-right-width:3px}
+.cam-corner.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px}
+.cam-corner.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px}
+.cam-scan-line{position:absolute;left:0;right:0;height:2px;background:rgba(80,180,255,.8);box-shadow:0 0 6px rgba(80,180,255,.8);animation:scanLine 2s linear infinite}
+@keyframes scanLine{0%{top:10px}100%{top:228px}}
+.cam-bottom{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:20px 16px 32px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;flex-direction:column;gap:10px;align-items:center}
+.cam-status{color:rgba(255,255,255,.85);font-size:13px;font-family:'Noto Sans TC',sans-serif;text-align:center}
+.cam-btn-row{display:flex;gap:10px}
+.cam-btn{height:40px;padding:0 18px;border-radius:20px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.cam-btn.on{background:rgba(255,220,60,.35);border-color:rgba(255,220,60,.6)}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:20;transition:opacity .15s}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
-    <div>
-      <div class="header-title">DIP 操作介面</div>
-      <div class="header-sub" id="clock">--:--:--</div>
-    </div>
+    <div><div class="header-title">DIP 操作介面</div><div class="header-sub" id="clock">--:--:--</div></div>
     <a href="admin.html" class="admin-link">⚙ 後台管理</a>
   </div>
 
-  <div id="no-config-warn" class="warn-box" style="display:none">
-    ⚠️ 尚未設定工站或員工資料，請先至後台管理設定。
-  </div>
+  <div id="warn-box" class="warn-box">⚠️ 尚未設定工站或員工資料，請先至後台管理設定。</div>
 
-  <!-- Step bar -->
   <div class="step-bar">
     <div class="step-seg active" id="ss0"></div>
     <div class="step-seg" id="ss1"></div>
@@ -146,88 +150,99 @@ html,body{height:100%;background:var(--bg);font-family:'Noto Sans TC',sans-serif
     <div class="step-label" id="headerStep">步驟 1 / 4</div>
   </div>
 
-  <!-- Step 0: Employee -->
+  <!-- Step 0 -->
   <div id="step0">
     <div class="card">
-      <div class="card-title">員工掃碼 / 輸入</div>
+      <div class="card-title">員工</div>
       <div class="workers-list" id="workersList"></div>
+      <button class="btn-camera" onclick="openCamera('emp')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        開啟相機掃員工條碼
+      </button>
       <div id="empBox" class="scan-target" onclick="document.getElementById('empIn').focus()">
-        <span class="scan-ico">👤</span>
-        <span class="scan-ph">點此掃碼或輸入員工編號</span>
+        <span class="scan-ico">👤</span><span class="scan-ph">或點此輸入員工編號</span>
       </div>
-      <div id="empErr" class="err-msg" style="display:none"></div>
+      <div id="empErr" class="err-msg"></div>
       <div class="input-row">
-        <input type="text" id="empIn" placeholder="員工編號（Enter 掃碼確認）" onkeydown="handleEmpKey(event)">
-        <button class="btn-scan" onclick="confirmEmp('scan')">掃碼</button>
-        <button class="btn-manual" onclick="confirmEmp('manual')">手動</button>
+        <input type="text" id="empIn" placeholder="員工編號（Enter 確認）" onkeydown="handleEmpKey(event)">
+        <button class="btn-manual-small" onclick="confirmEmp('manual')">手動</button>
       </div>
-      <div id="addSection" style="display:none" class="add-section">
+      <div class="hint">外接掃碼器：輸入後按 Enter</div>
+      <div id="addSection" class="add-section" style="display:none">
         <div class="add-title">加派人員（選填）</div>
+        <button class="btn-camera" onclick="openCamera('extra')" style="height:44px;font-size:13px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          相機掃碼加入
+        </button>
         <div class="input-row">
           <input type="text" id="extraIn" placeholder="加派員工編號" onkeydown="handleExtraKey(event)">
-          <button class="btn-add" onclick="addExtra('scan')">加入</button>
+          <button class="btn-add" onclick="addExtra('manual')">加入</button>
         </div>
       </div>
     </div>
     <div class="nav-row">
-      <button class="btn-next" id="btnEmpNext" disabled onclick="goStep(1)">下一步：掃工站</button>
+      <button class="btn-next" id="btnEmpNext" disabled onclick="goStep(1)">下一步：掃工站 →</button>
     </div>
   </div>
 
-  <!-- Step 1: Station -->
+  <!-- Step 1 -->
   <div id="step1" style="display:none">
     <div class="card">
       <div class="card-title">工站 QR Code</div>
+      <button class="btn-camera" onclick="openCamera('st')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        開啟相機掃工站 QR Code
+      </button>
       <div id="stBox" class="scan-target" onclick="document.getElementById('stIn').focus()">
-        <span class="scan-ico">🏭</span>
-        <span class="scan-ph">點此掃描工站 QR Code</span>
+        <span class="scan-ico">🏭</span><span class="scan-ph">或點此輸入工站代號</span>
       </div>
-      <div id="stErr" class="err-msg" style="display:none"></div>
+      <div id="stErr" class="err-msg"></div>
       <div class="input-row">
         <input type="text" id="stIn" placeholder="工站代號（例：ST-01）" onkeydown="handleStKey(event)">
-        <button class="btn-scan" onclick="confirmStation('scan')">掃碼</button>
-        <button class="btn-manual" onclick="confirmStation('manual')">手動</button>
+        <button class="btn-manual-small" onclick="confirmStation('manual')">手動</button>
       </div>
+      <div class="hint">外接掃碼器：輸入後按 Enter</div>
     </div>
     <div class="nav-row">
       <button class="btn-back" onclick="goStep(0)">返回</button>
-      <button class="btn-next" id="btnStNext" disabled onclick="goStep(2)">下一步：掃工單</button>
+      <button class="btn-next" id="btnStNext" disabled onclick="goStep(2)">下一步：掃工單 →</button>
     </div>
   </div>
 
-  <!-- Step 2: Work Order -->
+  <!-- Step 2 -->
   <div id="step2" style="display:none">
     <div class="card">
       <div class="card-title">工單條碼</div>
+      <button class="btn-camera" onclick="openCamera('wo')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        開啟相機掃工單條碼
+      </button>
       <div id="woBox" class="scan-target" onclick="document.getElementById('woIn').focus()">
-        <span class="scan-ico">📋</span>
-        <span class="scan-ph">點此掃描工單條碼</span>
+        <span class="scan-ico">📋</span><span class="scan-ph">或點此輸入工單號</span>
       </div>
       <div class="input-row">
         <input type="text" id="woIn" placeholder="工單號（例：WO-20250526-001）" onkeydown="handleWoKey(event)">
-        <button class="btn-scan" onclick="confirmWo('scan')">掃碼</button>
-        <button class="btn-manual" onclick="confirmWo('manual')">手動</button>
+        <button class="btn-manual-small" onclick="confirmWo('manual')">手動</button>
       </div>
+      <div class="hint">外接掃碼器：輸入後按 Enter</div>
     </div>
     <div class="nav-row">
       <button class="btn-back" onclick="goStep(1)">返回</button>
-      <button class="btn-next" id="btnWoNext" disabled onclick="goStep(3)">下一步：確認送出</button>
+      <button class="btn-next" id="btnWoNext" disabled onclick="goStep(3)">下一步：確認送出 →</button>
     </div>
   </div>
 
-  <!-- Step 3: Confirm -->
+  <!-- Step 3 -->
   <div id="step3" style="display:none">
     <div class="card">
       <div class="card-title">確認資料</div>
       <div id="confirmCard"></div>
       <button class="btn-submit" onclick="submitRecord()">✓ 確認送出</button>
     </div>
-    <div class="nav-row">
-      <button class="btn-back" onclick="goStep(2)">返回修改</button>
-    </div>
+    <div class="nav-row"><button class="btn-back" onclick="goStep(2)">返回修改</button></div>
   </div>
 
-  <!-- Step 4: Success -->
+  <!-- Step 4 -->
   <div id="step4" style="display:none">
     <div class="card">
       <div class="success-box">
@@ -238,96 +253,215 @@ html,body{height:100%;background:var(--bg);font-family:'Noto Sans TC',sans-serif
       <button class="btn-new" onclick="resetFlow()">＋ 新增下一筆</button>
     </div>
     <div class="card">
-      <div class="card-title">今日記錄 <button class="btn-clear" onclick="clearLog()">清除全部</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:700;color:var(--text2)">今日記錄</span>
+        <button class="btn-clear" onclick="clearLog()">清除全部</button>
+      </div>
       <div id="logList"></div>
     </div>
   </div>
 </div>
 
+<!-- Camera Overlay -->
+<div id="camOverlay">
+  <video id="camVideo" autoplay playsinline muted></video>
+  <div class="cam-top">
+    <span class="cam-label" id="camLabel">掃描條碼</span>
+    <button class="cam-close" onclick="closeCamera()">✕</button>
+  </div>
+  <div class="cam-frame">
+    <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
+    <div class="cam-corner bl"></div><div class="cam-corner br"></div>
+    <div class="cam-scan-line"></div>
+  </div>
+  <div class="cam-flash" id="camFlash"></div>
+  <div class="cam-bottom">
+    <div class="cam-status" id="camStatus">初始化相機中…</div>
+    <div class="cam-btn-row">
+      <button class="cam-btn" id="torchBtn" onclick="toggleTorch()" style="display:none">手電筒</button>
+      <button class="cam-btn" onclick="switchCamera()">切換鏡頭</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="capCanvas" style="display:none"></canvas>
+
 <script>
-// ── 狀態 ──
+// ── State ──
 const S = { workers:[], station:null, stationName:null, stationMethod:null, order:null, orderMethod:null };
 
-// ── localStorage 存取 ──
-function getStations()  { return JSON.parse(localStorage.getItem('dip_stations')  || '[]'); }
-function getEmployees() { return JSON.parse(localStorage.getItem('dip_employees') || '[]'); }
-function getLogs()      { return JSON.parse(localStorage.getItem('dip_logs')      || '[]'); }
-function saveLogs(arr)  { localStorage.setItem('dip_logs', JSON.stringify(arr)); }
+// ── localStorage ──
+const getStations  = () => JSON.parse(localStorage.getItem('dip_stations')  || '[]');
+const getEmployees = () => JSON.parse(localStorage.getItem('dip_employees') || '[]');
+const getLogs      = () => JSON.parse(localStorage.getItem('dip_logs')      || '[]');
+const saveLogs     = v  => localStorage.setItem('dip_logs', JSON.stringify(v));
+const getStatus    = () => JSON.parse(localStorage.getItem('dip_station_status') || '[]');
+const saveStatus   = v  => localStorage.setItem('dip_station_status', JSON.stringify(v));
 
-function getStationStatus() { return JSON.parse(localStorage.getItem('dip_station_status') || '[]'); }
-function saveStationStatus(arr) { localStorage.setItem('dip_station_status', JSON.stringify(arr)); }
+// ── Camera ──
+let camTarget = null, currentStream = null, rafId = null, detector = null;
+let torchTrack = null, torchOn = false, lastCode = null, camFacing = 'environment';
+const video = document.getElementById('camVideo');
+const capCanvas = document.getElementById('capCanvas');
+const capCtx = capCanvas.getContext('2d', { willReadFrequently: true });
 
-// ── 驗證員工 ──
+const CAM_LABELS = { emp:'掃員工 2D 條碼', extra:'掃加派員工條碼', st:'掃工站 QR Code', wo:'掃工單條碼' };
+
+async function openCamera(target) {
+  camTarget = target; lastCode = null;
+  document.getElementById('camLabel').textContent = CAM_LABELS[target] || '掃描條碼';
+  document.getElementById('camStatus').textContent = '初始化相機中…';
+  document.getElementById('camFlash').style.opacity = 0;
+  document.getElementById('torchBtn').style.display = 'none';
+  document.getElementById('camOverlay').classList.add('open');
+
+  if (!detector && 'BarcodeDetector' in window) {
+    try {
+      let fmts = ['qr_code','ean_13','ean_8','code_128','code_39','data_matrix','pdf417','aztec','upc_a','upc_e'];
+      try { const s = await BarcodeDetector.getSupportedFormats(); if (s && s.length) fmts = s; } catch(e){}
+      detector = new BarcodeDetector({ formats: fmts });
+    } catch(e) { detector = null; }
+  }
+
+  try {
+    if (currentStream) { currentStream.getTracks().forEach(t=>t.stop()); currentStream = null; }
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: camFacing }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    currentStream = stream; video.srcObject = stream;
+    await new Promise(res => { video.onloadedmetadata = res; setTimeout(res, 3000); });
+    await video.play();
+
+    const [track] = stream.getVideoTracks();
+    torchTrack = track;
+    try {
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (caps.torch) { document.getElementById('torchBtn').style.display = ''; }
+    } catch(e) {}
+
+    const w = video.videoWidth, h = video.videoHeight;
+    capCanvas.width = w; capCanvas.height = h;
+
+    if (detector) {
+      document.getElementById('camStatus').textContent = `BarcodeDetector 就緒，掃描中…`;
+      startDetectLoop();
+    } else {
+      document.getElementById('camStatus').textContent = '此瀏覽器不支援 BarcodeDetector，請手動輸入';
+    }
+  } catch(err) {
+    document.getElementById('camStatus').textContent = '無法開啟相機：' + err.message;
+  }
+}
+
+function startDetectLoop() {
+  if (rafId) cancelAnimationFrame(rafId);
+  let attempts = 0, detected = false;
+  async function tick() {
+    if (!detector || !currentStream || detected) return;
+    if (video.readyState >= 2) {
+      try {
+        // 先直接從 video 偵測
+        let barcodes = await detector.detect(video);
+        // 若沒偵測到，截圖到 canvas 再偵測（相容部分平板）
+        if (!barcodes.length) {
+          capCtx.drawImage(video, 0, 0, capCanvas.width, capCanvas.height);
+          barcodes = await detector.detect(capCanvas);
+        }
+        if (barcodes.length && barcodes[0].rawValue) {
+          const code = barcodes[0].rawValue.trim();
+          if (code === lastCode) { rafId = requestAnimationFrame(tick); return; }
+          lastCode = code; detected = true;
+          // Flash feedback
+          const fl = document.getElementById('camFlash');
+          fl.style.opacity = 1; setTimeout(() => fl.style.opacity = 0, 150);
+          if (navigator.vibrate) navigator.vibrate(80);
+          closeCamera();
+          handleScanResult(code, 'camera');
+          return;
+        }
+      } catch(e) {}
+      attempts++;
+      if (attempts % 60 === 0) document.getElementById('camStatus').textContent = `掃描中… 請確保條碼在框內 (${Math.floor(attempts/30)}s)`;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function closeCamera() {
+  document.getElementById('camOverlay').classList.remove('open');
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (currentStream) { currentStream.getTracks().forEach(t=>t.stop()); currentStream = null; }
+  video.srcObject = null; torchTrack = null; torchOn = false;
+}
+
+function toggleTorch() {
+  if (!torchTrack) return;
+  torchOn = !torchOn;
+  const btn = document.getElementById('torchBtn');
+  try {
+    torchTrack.applyConstraints({ advanced: [{ torch: torchOn }] });
+    btn.textContent = torchOn ? '關閉手電筒' : '手電筒';
+    btn.classList.toggle('on', torchOn);
+  } catch(e) {}
+}
+
+function switchCamera() {
+  camFacing = camFacing === 'environment' ? 'user' : 'environment';
+  openCamera(camTarget);
+}
+
+// ── Handle scan result ──
+function handleScanResult(code, method) {
+  if (camTarget === 'emp')   confirmEmpValue(code, method);
+  else if (camTarget === 'extra') addExtraValue(code, method);
+  else if (camTarget === 'st')  confirmStationValue(code, method);
+  else if (camTarget === 'wo')  confirmWoValue(code, method);
+}
+
+// ── Validate helpers ──
 function validateEmployee(id) {
   const emps = getEmployees();
-  if (!emps.length) return { valid: true, emp: { id, name: id, role:'operator', enabled:true } }; // 無設定時不擋
+  if (!emps.length) return { valid: true, emp: { id, name: id, role:'operator', enabled: true } };
   const emp = emps.find(e => e.id.toLowerCase() === id.toLowerCase() && e.enabled);
   return emp ? { valid: true, emp } : { valid: false };
 }
-
-// ── 驗證工站 ──
 function validateStation(id) {
   const stations = getStations();
-  if (!stations.length) return { valid: true, station: { id, name: id, enabled: true } };
+  if (!stations.length) return { valid: true, station: { id, name: id } };
   const st = stations.find(s => s.id.toLowerCase() === id.toLowerCase() && s.enabled);
   return st ? { valid: true, station: st } : { valid: false };
 }
 
-// ── 初始化 ──
-function init() {
-  setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleString('zh-TW'); }, 1000);
-  const stations = getStations(), emps = getEmployees();
-  if (!stations.length || !emps.length) document.getElementById('no-config-warn').style.display='block';
-  buildLog();
-}
-
-// ── 步驟導航 ──
-function goStep(n) {
-  ['step0','step1','step2','step3','step4'].forEach((id,i) => {
-    document.getElementById(id).style.display = i === n ? '' : 'none';
-  });
-  ['ss0','ss1','ss2','ss3'].forEach((id,i) => {
-    document.getElementById(id).className = 'step-seg' + (i<n?' done':i===n?' active':'');
-  });
-  document.getElementById('headerStep').textContent = n < 4 ? `步驟 ${n+1} / 4` : '完成';
-  if (n === 3) buildConfirm();
-  if (n === 4) buildLog();
-}
-
 // ── Step 0: Employee ──
-function handleEmpKey(e) { if(e.key==='Enter'){e.preventDefault();confirmEmp('scan');} }
-function handleExtraKey(e) { if(e.key==='Enter'){e.preventDefault();addExtra('scan');} }
+function handleEmpKey(e) { if(e.key==='Enter'){e.preventDefault();confirmEmpValue(document.getElementById('empIn').value.trim(),'scan');} }
+function handleExtraKey(e) { if(e.key==='Enter'){e.preventDefault();addExtraValue(document.getElementById('extraIn').value.trim(),'scan');} }
 
-function confirmEmp(method) {
-  const v = document.getElementById('empIn').value.trim();
-  if (!v) return;
-  if (S.workers.find(w => w.id.toLowerCase() === v.toLowerCase())) {
-    showErr('empErr', '此員工已在列表中'); return;
-  }
-  const result = validateEmployee(v);
-  if (!result.valid) { showErr('empErr', `找不到員工：${v}，請確認編號是否正確`); return; }
+function confirmEmp(method) { confirmEmpValue(document.getElementById('empIn').value.trim(), method); }
+
+function confirmEmpValue(val, method) {
+  if (!val) return;
+  if (S.workers.find(w => w.id.toLowerCase() === val.toLowerCase())) { showErr('empErr','此員工已在列表中'); return; }
+  const r = validateEmployee(val);
+  if (!r.valid) { showErr('empErr','找不到員工：'+val+'，請確認編號'); return; }
   hideErr('empErr');
-  if (S.workers.length === 0) {
-    S.workers.push({ id: result.emp.id, name: result.emp.name, method, role: result.emp.role || 'operator' });
-    document.getElementById('empIn').value = '';
-    document.getElementById('addSection').style.display = '';
-    document.getElementById('btnEmpNext').disabled = false;
-    renderWorkers();
-    setBoxFilled('empBox','👤', result.emp.name + '（' + result.emp.id + '）', method);
-  }
+  S.workers.push({ id: r.emp.id, name: r.emp.name, method, role: r.emp.role || 'operator' });
+  document.getElementById('empIn').value = '';
+  document.getElementById('addSection').style.display = '';
+  document.getElementById('btnEmpNext').disabled = false;
+  renderWorkers();
+  setBoxFilled('empBox','👤', r.emp.name + '（' + r.emp.id + '）', method);
 }
 
-function addExtra(method) {
-  const inp = document.getElementById('extraIn');
-  const v = inp.value.trim(); if (!v) return;
-  if (S.workers.find(w => w.id.toLowerCase() === v.toLowerCase())) {
-    showErr('empErr','此員工已在列表中'); return;
-  }
-  const result = validateEmployee(v);
-  if (!result.valid) { showErr('empErr', `找不到員工：${v}`); return; }
+function addExtra(method) { addExtraValue(document.getElementById('extraIn').value.trim(), method); }
+function addExtraValue(val, method) {
+  if (!val) return;
+  if (S.workers.find(w => w.id.toLowerCase() === val.toLowerCase())) { showErr('empErr','此員工已在列表中'); return; }
+  const r = validateEmployee(val);
+  if (!r.valid) { showErr('empErr','找不到員工：'+val); return; }
   hideErr('empErr');
-  S.workers.push({ id: result.emp.id, name: result.emp.name, method, role: 'support' });
-  inp.value = '';
+  S.workers.push({ id: r.emp.id, name: r.emp.name, method, role: 'support' });
+  document.getElementById('extraIn').value = '';
   renderWorkers();
 }
 
@@ -336,7 +470,7 @@ function removeWorker(id) {
   if (!S.workers.length) {
     document.getElementById('addSection').style.display = 'none';
     document.getElementById('btnEmpNext').disabled = true;
-    resetBox('empBox','👤','點此掃碼或輸入員工編號');
+    resetBox('empBox','👤','或點此輸入員工編號');
   }
   renderWorkers();
 }
@@ -344,36 +478,36 @@ function removeWorker(id) {
 function renderWorkers() {
   document.getElementById('workersList').innerHTML = S.workers.map((w,i) => `
     <div class="worker-chip">
-      <div class="w-avatar">${w.name.slice(-1)}</div>
+      <div class="w-av">${w.name.slice(-1)}</div>
       <span class="w-name">${w.name}（${w.id}）</span>
-      <span class="badge badge-${w.method}">${w.method==='scan'?'掃碼':'手動'}</span>
-      <span class="badge badge-${i===0?'op':'sup'}">${i===0?'操作員':'支援'}</span>
+      <span class="badge b-${w.method==='camera'?'camera':w.method==='scan'?'scan':'manual'}">${w.method==='camera'?'相機':w.method==='scan'?'掃碼':'手動'}</span>
+      <span class="badge ${i===0?'b-op':'b-sup'}">${i===0?'操作員':'支援'}</span>
       <button class="w-rm" onclick="removeWorker('${w.id}')">×</button>
     </div>`).join('');
 }
 
 // ── Step 1: Station ──
-function handleStKey(e) { if(e.key==='Enter'){e.preventDefault();confirmStation('scan');} }
-function confirmStation(method) {
-  const v = document.getElementById('stIn').value.trim(); if (!v) return;
-  const result = validateStation(v);
-  if (!result.valid) { showErr('stErr', `找不到工站：${v}，請確認後再試或聯絡管理員`); return; }
+function handleStKey(e) { if(e.key==='Enter'){e.preventDefault();confirmStationValue(document.getElementById('stIn').value.trim(),'scan');} }
+function confirmStation(method) { confirmStationValue(document.getElementById('stIn').value.trim(), method); }
+function confirmStationValue(val, method) {
+  if (!val) return;
+  const r = validateStation(val);
+  if (!r.valid) { showErr('stErr','找不到工站：'+val+'，請確認代號或聯絡管理員'); return; }
   hideErr('stErr');
-  S.station = result.station.id;
-  S.stationName = result.station.name;
-  S.stationMethod = method;
+  S.station = r.station.id; S.stationName = r.station.name; S.stationMethod = method;
   document.getElementById('stIn').value = '';
-  setBoxFilled('stBox','🏭', result.station.name + '（' + result.station.id + '）', method);
+  setBoxFilled('stBox','🏭', r.station.name + '（' + r.station.id + '）', method);
   document.getElementById('btnStNext').disabled = false;
 }
 
 // ── Step 2: Work Order ──
-function handleWoKey(e) { if(e.key==='Enter'){e.preventDefault();confirmWo('scan');} }
-function confirmWo(method) {
-  const v = document.getElementById('woIn').value.trim(); if (!v) return;
-  S.order = v; S.orderMethod = method;
+function handleWoKey(e) { if(e.key==='Enter'){e.preventDefault();confirmWoValue(document.getElementById('woIn').value.trim(),'scan');} }
+function confirmWo(method) { confirmWoValue(document.getElementById('woIn').value.trim(), method); }
+function confirmWoValue(val, method) {
+  if (!val) return;
+  S.order = val; S.orderMethod = method;
   document.getElementById('woIn').value = '';
-  setBoxFilled('woBox','📋', v, method);
+  setBoxFilled('woBox','📋', val, method);
   document.getElementById('btnWoNext').disabled = false;
 }
 
@@ -381,56 +515,48 @@ function confirmWo(method) {
 function buildConfirm() {
   const wRows = S.workers.map((w,i) => `
     <span class="confirm-chip">${w.name}</span>
-    <span class="badge badge-${w.method}">${w.method==='scan'?'掃碼':'手動'}</span>
-    <span class="badge badge-${i===0?'op':'sup'}">${i===0?'操作員':'支援'}</span>`).join('');
+    <span class="badge b-${w.method==='camera'?'camera':w.method==='scan'?'scan':'manual'}">${w.method==='camera'?'相機':w.method==='scan'?'掃碼':'手動'}</span>
+    <span class="badge ${i===0?'b-op':'b-sup'}">${i===0?'操作員':'支援'}</span>`).join('');
   document.getElementById('confirmCard').innerHTML = `
     <div class="confirm-row"><span class="confirm-key">員工</span><div class="confirm-vals">${wRows}</div></div>
     <div class="confirm-row"><span class="confirm-key">工站</span><div class="confirm-vals">
       <span class="confirm-chip">${S.stationName}（${S.station}）</span>
-      <span class="badge badge-${S.stationMethod}">${S.stationMethod==='scan'?'掃碼':'手動'}</span></div></div>
+      <span class="badge b-${S.stationMethod==='camera'?'camera':S.stationMethod==='scan'?'scan':'manual'}">${S.stationMethod==='camera'?'相機':S.stationMethod==='scan'?'掃碼':'手動'}</span></div></div>
     <div class="confirm-row"><span class="confirm-key">工單</span><div class="confirm-vals">
       <span class="confirm-chip">${S.order}</span>
-      <span class="badge badge-${S.orderMethod}">${S.orderMethod==='scan'?'掃碼':'手動'}</span></div></div>
+      <span class="badge b-${S.orderMethod==='camera'?'camera':S.orderMethod==='scan'?'scan':'manual'}">${S.orderMethod==='camera'?'相機':S.orderMethod==='scan'?'掃碼':'手動'}</span></div></div>
     <div class="confirm-row"><span class="confirm-key">時間</span><div class="confirm-vals">
-      <span style="font-size:13px;font-family:'JetBrains Mono',monospace">${new Date().toLocaleString('zh-TW')}</span></div></div>`;
+      <span style="font-size:12px;font-family:'JetBrains Mono',monospace">${new Date().toLocaleString('zh-TW')}</span></div></div>`;
 }
 
-// ── Step 4: Submit ──
+// ── Submit ──
 function submitRecord() {
   const now = new Date();
   const record = {
-    id: 'R' + now.getTime(),
-    ts: now.toISOString(),
+    id: 'R'+now.getTime(), ts: now.toISOString(),
     workers: S.workers.map((w,i) => ({ empId:w.id, empName:w.name, method:w.method, role:i===0?'operator':'support' })),
     stationId: S.station, stationName: S.stationName, stationMethod: S.stationMethod,
     workOrderId: S.order, orderMethod: S.orderMethod
   };
-  const logs = getLogs();
-  logs.unshift(record);
-  saveLogs(logs.slice(0, 200));
-
-  // 更新工站在線狀態
-  const status = getStationStatus();
+  const logs = getLogs(); logs.unshift(record); saveLogs(logs.slice(0,200));
+  const status = getStatus();
+  const ops = S.workers.map((w,i) => ({ empId:w.id, empName:w.name, role:i===0?'operator':'support', since:now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) }));
   const idx = status.findIndex(s => s.stationId === S.station);
-  const ops = S.workers.map((w,i) => ({
-    empId: w.id, empName: w.name, role: i===0?'operator':'support',
-    since: now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})
-  }));
   if (idx >= 0) status[idx].operators = ops;
   else status.push({ stationId: S.station, stationName: S.stationName, operators: ops });
-  saveStationStatus(status);
-
-  document.getElementById('savedId').textContent = 'ID: ' + record.id;
+  saveStatus(status);
+  document.getElementById('savedId').textContent = 'ID: '+record.id;
   goStep(4);
 }
 
 // ── Log ──
 function buildLog() {
-  const logs = getLogs().filter(r => r.ts.startsWith(new Date().toISOString().slice(0,10)));
+  const today = new Date().toISOString().slice(0,10);
+  const logs = getLogs().filter(r => r.ts.startsWith(today));
   const el = document.getElementById('logList');
   if (!logs.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:16px">今日尚無記錄</div>'; return; }
   el.innerHTML = logs.slice(0,10).map(r => {
-    const hasManual = r.workers.some(w=>w.method==='manual')||r.stationMethod==='manual'||r.orderMethod==='manual';
+    const hasManual = r.workers.some(w=>w.method!=='camera'&&w.method!=='scan')||r.stationMethod==='manual'||r.orderMethod==='manual';
     return `<div class="log-item">
       <div class="log-dot"></div>
       <div class="log-main">
@@ -439,51 +565,57 @@ function buildLog() {
       </div>
       <div class="log-time">
         <div>${new Date(r.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</div>
-        <div style="margin-top:3px">${hasManual?'<span class="badge badge-manual">含手動</span>':'<span class="badge badge-scan">全掃碼</span>'}</div>
+        <div style="margin-top:3px">${hasManual?'<span class="badge b-manual">含手動</span>':'<span class="badge b-scan">全掃碼</span>'}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-function clearLog() {
-  if (confirm('確定清除所有記錄？')) { localStorage.removeItem('dip_logs'); buildLog(); }
+function clearLog() { if(confirm('確定清除所有記錄？')){ localStorage.removeItem('dip_logs'); buildLog(); } }
+
+// ── Nav ──
+function goStep(n) {
+  ['step0','step1','step2','step3','step4'].forEach((id,i) => document.getElementById(id).style.display = i===n?'':'none');
+  ['ss0','ss1','ss2','ss3'].forEach((id,i) => document.getElementById(id).className='step-seg'+(i<n?' done':i===n?' active':''));
+  document.getElementById('headerStep').textContent = n<4?`步驟 ${n+1} / 4`:'完成';
+  if (n===3) buildConfirm();
+  if (n===4) buildLog();
 }
 
 function resetFlow() {
-  Object.assign(S, {workers:[], station:null, stationName:null, stationMethod:null, order:null, orderMethod:null});
-  document.getElementById('empIn').value='';
-  document.getElementById('stIn').value='';
-  document.getElementById('woIn').value='';
+  Object.assign(S, {workers:[],station:null,stationName:null,stationMethod:null,order:null,orderMethod:null});
+  ['empIn','stIn','woIn','extraIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('workersList').innerHTML='';
   document.getElementById('addSection').style.display='none';
-  document.getElementById('btnEmpNext').disabled=true;
-  document.getElementById('btnStNext').disabled=true;
-  document.getElementById('btnWoNext').disabled=true;
+  ['btnEmpNext','btnStNext','btnWoNext'].forEach(id=>document.getElementById(id).disabled=true);
   hideErr('empErr'); hideErr('stErr');
-  resetBox('empBox','👤','點此掃碼或輸入員工編號');
-  resetBox('stBox','🏭','點此掃描工站 QR Code');
-  resetBox('woBox','📋','點此掃描工單條碼');
+  resetBox('empBox','👤','或點此輸入員工編號');
+  resetBox('stBox','🏭','或點此輸入工站代號');
+  resetBox('woBox','📋','或點此輸入工單號');
   goStep(0);
 }
 
 function setBoxFilled(id, ico, val, method) {
-  const box = document.getElementById(id);
-  box.className='scan-target filled';
-  box.onclick=null;
-  box.innerHTML=`<span class="scan-ico">${ico}</span><span class="scan-val">${val}</span><span class="badge badge-${method}">${method==='scan'?'掃碼':'手動'}</span>`;
+  const box = document.getElementById(id); box.className='scan-target filled'; box.onclick=null;
+  const bClass = method==='camera'?'b-camera':method==='scan'?'b-scan':'b-manual';
+  const bLabel = method==='camera'?'相機':method==='scan'?'掃碼':'手動';
+  box.innerHTML=`<span class="scan-ico">${ico}</span><span class="scan-val">${val}</span><span class="badge ${bClass}">${bLabel}</span>`;
 }
 function resetBox(id, ico, ph) {
-  const box = document.getElementById(id);
-  box.className='scan-target';
-  if(id==='empBox') box.onclick=()=>document.getElementById('empIn').focus();
-  if(id==='stBox')  box.onclick=()=>document.getElementById('stIn').focus();
-  if(id==='woBox')  box.onclick=()=>document.getElementById('woIn').focus();
+  const box = document.getElementById(id); box.className='scan-target';
+  const inMap={'empBox':'empIn','stBox':'stIn','woBox':'woIn'};
+  if (inMap[id]) box.onclick=()=>document.getElementById(inMap[id]).focus();
   box.innerHTML=`<span class="scan-ico">${ico}</span><span class="scan-ph">${ph}</span>`;
 }
-function showErr(id, msg) { const el=document.getElementById(id); el.style.display=''; el.textContent=msg; }
-function hideErr(id) { document.getElementById(id).style.display='none'; }
+function showErr(id,msg){const el=document.getElementById(id);el.style.display='';el.textContent=msg;}
+function hideErr(id){document.getElementById(id).style.display='none';}
 
-init();
+// ── Init ──
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleString('zh-TW');},1000);
+(function(){
+  const sts=getStations(),emps=getEmployees();
+  if(!sts.length||!emps.length) document.getElementById('warn-box').style.display='';
+})();
 </script>
 </body>
 </html>
