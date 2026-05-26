@@ -385,16 +385,17 @@ function seedDefaults() {
   }
   // 初始化工站在線狀態種子（模擬目前部分工站有人）
   if (!LS.status().length) {
+    const todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
     LS.save('station_status', [
-      {stationId:'ST-01',stationName:'插件站A',operators:[
-        {empId:'E001',empName:'陳大明',role:'operator',since:'08:00'},
+      {stationId:'ST-01',stationName:'插件站A',workOrderId:'WO-'+todayStr+'-002',since:'11:00',operators:[
+        {empId:'E001',empName:'陳大明',role:'operator',since:'11:00'},
         {empId:'E006',empName:'劉雅婷',role:'support',since:'11:05'}
       ]},
-      {stationId:'ST-02',stationName:'焊接站B',operators:[
+      {stationId:'ST-02',stationName:'焊接站B',workOrderId:'WO-'+todayStr+'-001',since:'08:40',operators:[
         {empId:'E002',empName:'林小芳',role:'operator',since:'08:40'}
       ]},
       {stationId:'ST-03',stationName:'檢驗站C',operators:[]},
-      {stationId:'ST-04',stationName:'清洗站D',operators:[
+      {stationId:'ST-04',stationName:'清洗站D',workOrderId:'WO-'+todayStr+'-001',since:'09:00',operators:[
         {empId:'E004',empName:'張美玲',role:'operator',since:'09:00'}
       ]},
       {stationId:'ST-05',stationName:'包裝站E',operators:[]},
@@ -679,11 +680,22 @@ function renderLive() {
 
   document.getElementById('live-grid').innerHTML=full.map(s=>{
     const active=s.operators.length>0;
+    const woBlock = active && s.workOrderId
+      ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:6px 10px;background:var(--accent-bg);border-radius:6px;border:1px solid #BFCFE8">
+           <span style="font-size:10px;font-weight:700;color:var(--accent-text);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">工單</span>
+           <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent-text);word-break:break-all">${s.workOrderId}</span>
+           <span style="font-size:10px;color:var(--accent-text);opacity:.7;margin-left:auto;white-space:nowrap">${s.since||''}</span>
+         </div>`
+      : '';
     return`<div class="st-card${active?' online':''}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="st-name">${s.stationName||s.stationId}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.06em;text-transform:uppercase">${s.stationId}</div>
+          <div class="st-name" style="margin-top:1px">${s.stationName||s.stationId}</div>
+        </div>
         ${active?badge('b-on','在線'):badge('b-off','空閒')}
       </div>
+      ${woBlock}
       ${active?s.operators.map(op=>`<div class="op-row"><div class="av">${op.empName.slice(-1)}</div><div><div class="op-name">${op.empName}</div><div class="op-meta">${op.empId} · ${op.role==='operator'?'操作員':'支援'} · ${op.since} 起</div></div></div>`).join(''):'<div class="op-meta" style="padding:4px 0">目前無人</div>'}
     </div>`;
   }).join('');
