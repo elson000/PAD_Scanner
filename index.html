@@ -2,416 +2,533 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0a0f">
-<title>條碼掃描器</title>
-<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIP 產線追溯系統 — 後台管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-:root {
-  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c26;
-  --border:rgba(255,255,255,0.08); --accent:#4fc3f7; --accent2:#7c4dff;
-  --text:#f0f0ff; --muted:rgba(240,240,255,0.45);
-  --success:#4caf93; --radius:16px;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F4F1;
+  --surface:#FFFFFF;
+  --border:#E2E0DA;
+  --border2:#C8C6BE;
+  --text:#1A1917;
+  --text2:#6B6860;
+  --text3:#9B9990;
+  --accent:#1D5FA8;
+  --accent-bg:#EAF1FB;
+  --accent-text:#0C3F74;
+  --green:#1A7A4A;
+  --green-bg:#E6F4EC;
+  --amber:#8A5A00;
+  --amber-bg:#FEF3DC;
+  --red:#B83232;
+  --red-bg:#FCEAEA;
+  --purple:#4A3BAA;
+  --purple-bg:#EEEDFB;
+  --radius:10px;
+  --radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
 }
-body { background:var(--bg); color:var(--text); font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif; min-height:100dvh; display:flex; flex-direction:column; overflow-x:hidden; }
-header { padding:14px 18px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:var(--surface); }
-.logo { font-size:17px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.tabs { display:flex; gap:4px; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
-.tab { flex:1; padding:8px 0; border-radius:10px; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; }
-.tab.active { background:var(--surface2); color:var(--accent); border:1px solid rgba(79,195,247,0.25); }
-.scanner-area { flex:1; display:flex; flex-direction:column; align-items:center; padding:16px 14px; gap:14px; }
-.viewfinder-wrap { width:100%; max-width:420px; position:relative; border-radius:var(--radius); overflow:hidden; background:#000; aspect-ratio:1/1; }
-#video { width:100%; height:100%; object-fit:cover; display:block; }
-.scan-overlay { position:absolute; inset:0; pointer-events:none; }
-.corner { position:absolute; width:28px; height:28px; border-color:var(--accent); border-style:solid; border-width:0; }
-.corner.tl { top:14px; left:14px; border-top-width:3px; border-left-width:3px; border-top-left-radius:4px; }
-.corner.tr { top:14px; right:14px; border-top-width:3px; border-right-width:3px; border-top-right-radius:4px; }
-.corner.bl { bottom:14px; left:14px; border-bottom-width:3px; border-left-width:3px; border-bottom-left-radius:4px; }
-.corner.br { bottom:14px; right:14px; border-bottom-width:3px; border-right-width:3px; border-bottom-right-radius:4px; }
-.scan-line { position:absolute; left:14px; right:14px; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); animation:scanMove 2s ease-in-out infinite; }
-@keyframes scanMove { 0%{top:14px;opacity:.8} 50%{opacity:1} 100%{top:calc(100% - 16px);opacity:.8} }
-.beep-ind { position:absolute; inset:0; background:rgba(79,195,247,.18); border-radius:var(--radius); pointer-events:none; opacity:0; transition:opacity .1s; }
-.torch-btn { position:absolute; bottom:12px; right:12px; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; }
-.torch-btn.on { background:rgba(255,200,0,.3); border-color:rgba(255,200,0,.6); color:#ffc800; }
-.cam-placeholder { width:100%; max-width:420px; aspect-ratio:1/1; border-radius:var(--radius); background:var(--surface2); border:1px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--muted); font-size:14px; text-align:center; padding:28px; }
-.cam-icon { font-size:44px; opacity:.4; }
-.debug-bar { width:100%; max-width:420px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:11px; color:var(--muted); font-family:monospace; min-height:32px; line-height:1.6; word-break:break-all; }
-.result-card { width:100%; max-width:420px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-.result-header { padding:9px 13px; background:var(--surface2); display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--border); }
-.result-type-badge { background:rgba(79,195,247,.12); color:var(--accent); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600; }
-.result-body { padding:13px; }
-.result-text { font-size:15px; word-break:break-all; line-height:1.5; }
-.result-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-.btn-sm { padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:12px; cursor:pointer; font-family:inherit; }
-.btn-sm:active { opacity:.7; }
-.btn-sm.primary { background:rgba(79,195,247,.12); border-color:rgba(79,195,247,.3); color:var(--accent); }
-.btn-main { width:100%; max-width:420px; padding:14px; border-radius:var(--radius); border:none; background:linear-gradient(135deg,#2979ff,var(--accent2)); color:#fff; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
-.btn-main:active { opacity:.85; }
-.btn-main:disabled { opacity:.4; cursor:not-allowed; }
-.btn-main.stop { background:linear-gradient(135deg,#c62828,#e53935); }
-.page { display:none; flex-direction:column; flex:1; }
-.page.active { display:flex; }
-.history-section { flex:1; padding:14px; overflow-y:auto; }
-.history-empty { text-align:center; color:var(--muted); font-size:14px; padding:44px 20px; }
-.history-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; margin-bottom:10px; cursor:pointer; }
-.hi-top { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
-.hi-badge { background:var(--surface2); color:var(--muted); padding:2px 7px; border-radius:5px; font-size:10px; font-weight:600; }
-.hi-time { font-size:11px; color:var(--muted); margin-left:auto; }
-.hi-text { font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.flash { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(76,175,147,.95); color:#fff; padding:10px 22px; border-radius:12px; font-size:14px; font-weight:600; pointer-events:none; z-index:999; opacity:0; transition:opacity .25s; }
-.hidden { display:none !important; }
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+.layout{display:flex;height:100vh}
+
+/* Sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0}
+.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+.sidebar-title{font-size:16px;font-weight:700;color:var(--text)}
+.sidebar-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.nav{padding:12px 10px;flex:1}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:10px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:2px;font-weight:500}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent-text)}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{padding:12px 20px;border-top:1px solid var(--border)}
+.sync-info{font-size:11px;color:var(--text3)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22C55E;margin-right:5px;vertical-align:middle}
+
+/* Main */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.ts-badge{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.content{padding:24px 28px}
+
+/* Page visibility */
+.page{display:none}
+.page.active{display:block}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+
+/* Filter row */
+.filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;gap:5px}
+.filter-group label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.filter-group input,
+.filter-group select{height:38px;padding:0 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border .15s;min-width:150px}
+.filter-group input:focus,
+.filter-group select:focus{border-color:var(--accent);background:var(--surface)}
+.btn{height:38px;padding:0 18px;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#154E8F}
+.btn-secondary{background:var(--surface);color:var(--text2);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--bg);color:var(--text)}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;border-bottom:2px solid var(--border);text-align:left;background:var(--bg);white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FAFAF8}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-op{background:var(--accent-bg);color:var(--accent-text)}
+.badge-sup{background:var(--green-bg);color:var(--green)}
+.badge-scan{background:var(--purple-bg);color:var(--purple)}
+.badge-manual{background:var(--amber-bg);color:var(--amber)}
+.badge-online{background:var(--green-bg);color:var(--green)}
+.badge-offline{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+
+/* Empty state */
+.empty{text-align:center;padding:52px 20px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text2)}
+.empty-sub{font-size:12px}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-val{font-size:26px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* Trace timeline */
+.trace-list{display:flex;flex-direction:column;gap:0}
+.trace-item{display:flex;gap:16px}
+.trace-spine{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0}
+.trace-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 2px var(--accent);flex-shrink:0;margin-top:3px;z-index:1}
+.trace-line{width:2px;flex:1;background:var(--border2);margin:4px 0;min-height:20px}
+.trace-body{flex:1;padding-bottom:20px}
+.trace-station-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
+.trace-ops{display:flex;flex-direction:column;gap:6px}
+.trace-op-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.trace-emp{font-size:13px;font-weight:700;color:var(--text)}
+.trace-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:auto}
+.wo-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--accent-bg);border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid #BFCFE8}
+.wo-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-text)}
+.wo-id{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent-text)}
+.wo-stats{font-size:12px;color:var(--accent-text);opacity:.8;margin-left:auto}
+
+/* Station grid */
+.station-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.station-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);transition:border .15s}
+.station-card.active-st{border-color:#9FE1CB;background:#FAFFFE}
+.station-name-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.station-id{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase}
+.station-display-name{font-size:14px;font-weight:700;color:var(--text);margin-top:1px}
+.operator-list{display:flex;flex-direction:column;gap:7px}
+.op-row{display:flex;align-items:center;gap:9px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent-text);flex-shrink:0}
+.op-name{font-size:13px;font-weight:700;color:var(--text)}
+.op-meta{font-size:11px;color:var(--text3)}
+
+/* Result count */
+.result-meta{font-size:12px;color:var(--text3);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+
+/* Responsive for tablet */
+@media(max-width:900px){
+  .sidebar{width:180px;min-width:180px}
+  .content{padding:16px}
+  .topbar{padding:12px 16px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;height:auto;min-width:0;flex-direction:row;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-header{display:none}
+  .nav{display:flex;flex-direction:row;padding:8px;overflow-x:auto;gap:4px}
+  .nav-section{display:none}
+  .nav-item{flex-direction:column;gap:4px;font-size:10px;padding:8px 12px;min-width:64px;text-align:center}
+  .main{flex:1}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
+<div class="layout">
 
-<header>
-  <span class="logo">掃描器 PWA</span>
-  <span style="font-size:11px;color:var(--muted);">免安裝</span>
-</header>
-
-<div class="tabs">
-  <button class="tab active" onclick="switchPage('scan',this)">📷 掃描</button>
-  <button class="tab" onclick="switchPage('history',this)">📋 記錄</button>
-</div>
-
-<div class="page active" id="page-scan">
-  <div class="scanner-area">
-
-    <div id="viewfinder-wrap" class="viewfinder-wrap hidden">
-      <video id="video" playsinline autoplay muted></video>
-      <div class="scan-overlay">
-        <div class="corner tl"></div><div class="corner tr"></div>
-        <div class="corner bl"></div><div class="corner br"></div>
-        <div class="scan-line"></div>
-        <div class="beep-ind" id="beepInd"></div>
-      </div>
-      <div class="torch-btn hidden" id="torchBtn" onclick="toggleTorch()">💡</div>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">DIP Traceability</div>
+    <div class="sidebar-title">追溯管理系統</div>
+    <div class="sidebar-sub">後台管理介面</div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">追溯查詢</div>
+    <div class="nav-item active" onclick="showPage('forward')" data-page="forward">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      正向追溯
     </div>
-
-    <div id="camPlaceholder" class="cam-placeholder">
-      <div class="cam-icon">📷</div>
-      <div style="font-size:15px;color:var(--text);font-weight:500;">按下啟動掃描</div>
-      <div style="font-size:12px;">支援 QR Code、EAN、Code128 等</div>
+    <div class="nav-item" onclick="showPage('reverse')" data-page="reverse">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      反向追溯
     </div>
+    <div class="nav-section">人員管理</div>
+    <div class="nav-item" onclick="showPage('employee')" data-page="employee">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      員工記錄
+    </div>
+    <div class="nav-item" onclick="showPage('station')" data-page="station">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      工站狀態
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sync-info"><span class="dot"></span>localStorage 模式</div>
+  </div>
+</nav>
 
-    <div class="debug-bar" id="debugBar">狀態：等待啟動</div>
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">正向追溯</div>
+      <div class="topbar-sub" id="topbar-sub">輸入工單號，查出完整製程路徑</div>
+    </div>
+    <div class="topbar-right">
+      <span class="ts-badge" id="clock">--:--:--</span>
+    </div>
+  </div>
 
-    <div class="result-card">
-      <div class="result-header">
-        <span>掃描結果</span>
-        <span class="result-type-badge" id="resultType">等待中</span>
-        <span style="margin-left:auto;font-size:11px;" id="resultTime"></span>
-      </div>
-      <div class="result-body">
-        <div class="result-text" id="resultText" style="color:var(--muted);">尚未掃描任何條碼</div>
-        <div class="result-actions" id="resultActions" style="display:none;">
-          <button class="btn-sm primary" onclick="copyResult()">複製</button>
-          <button class="btn-sm" id="openLinkBtn" onclick="openResult()" style="display:none;">開啟連結</button>
-          <button class="btn-sm" onclick="shareResult()">分享</button>
-          <button class="btn-sm" onclick="clearResult()">清除</button>
+  <div class="content">
+
+    <!-- 正向追溯 -->
+    <div id="page-forward" class="page active">
+      <div class="card">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>工單號</label>
+            <input type="text" id="fwd-wo" placeholder="例：WO-20250526-001" style="min-width:220px">
+          </div>
+          <button class="btn btn-primary" onclick="runForward()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            查詢
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('fwd-wo').value='WO-20250526-001';runForward()">載入範例</button>
         </div>
       </div>
+      <div id="fwd-result"></div>
     </div>
 
-    <button class="btn-main" id="mainBtn" onclick="toggleScan()">啟動相機掃描</button>
+    <!-- 反向追溯 -->
+    <div id="page-reverse" class="page">
+      <div class="card">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>工站</label>
+            <select id="rev-station"><option value="">全部工站</option></select>
+          </div>
+          <div class="filter-group">
+            <label>開始時間</label>
+            <input type="datetime-local" id="rev-start">
+          </div>
+          <div class="filter-group">
+            <label>結束時間</label>
+            <input type="datetime-local" id="rev-end">
+          </div>
+          <div class="filter-group">
+            <label>員工ID（選填）</label>
+            <input type="text" id="rev-emp" placeholder="篩選特定員工" style="min-width:130px">
+          </div>
+          <button class="btn btn-primary" onclick="runReverse()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            查詢
+          </button>
+        </div>
+      </div>
+      <div id="rev-result"></div>
+    </div>
+
+    <!-- 員工記錄 -->
+    <div id="page-employee" class="page">
+      <div class="card">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>員工</label>
+            <select id="emp-id"><option value="">全部員工</option></select>
+          </div>
+          <div class="filter-group">
+            <label>日期（起）</label>
+            <input type="date" id="emp-date-start">
+          </div>
+          <div class="filter-group">
+            <label>日期（迄）</label>
+            <input type="date" id="emp-date-end">
+          </div>
+          <div class="filter-group">
+            <label>工站（選填）</label>
+            <select id="emp-station"><option value="">全部工站</option></select>
+          </div>
+          <button class="btn btn-primary" onclick="runEmployee()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            查詢
+          </button>
+        </div>
+      </div>
+      <div id="emp-result"></div>
+    </div>
+
+    <!-- 工站狀態 -->
+    <div id="page-station" class="page">
+      <div id="stat-grid" class="stat-grid"></div>
+      <div id="station-grid" class="station-grid"></div>
+    </div>
 
   </div>
 </div>
-
-<div class="page" id="page-history">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px 4px;">
-    <span style="font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;">掃描記錄</span>
-    <button class="btn-sm" onclick="clearHistory()">清除全部</button>
-  </div>
-  <div class="history-section" id="historyList"></div>
 </div>
-
-<div class="flash" id="flashMsg"></div>
-<canvas id="cap" style="display:none;"></canvas>
 
 <script>
-// ── 狀態 ──────────────────────────────────────────
-let scanning = false;
-let currentStream = null;
-let torchOn = false;
-let torchTrack = null;
-let lastResult = null;
-let rafId = null;
-let history = [];
-try { history = JSON.parse(localStorage.getItem('scanHistory') || '[]'); } catch(e){}
+// ── 模擬資料（串接 API 後替換這兩個陣列）──
+const RECORDS = [
+  {id:'R001',empId:'E001',empName:'陳大明',stationId:'ST-01',stationName:'插件站A',workOrderId:'WO-20250526-001',ts:'2025-05-26T08:05:00',input:'scan',role:'operator'},
+  {id:'R002',empId:'E002',empName:'林小芳',stationId:'ST-02',stationName:'焊接站B',workOrderId:'WO-20250526-001',ts:'2025-05-26T08:42:00',input:'scan',role:'operator'},
+  {id:'R003',empId:'E003',empName:'王志豪',stationId:'ST-03',stationName:'檢驗站C',workOrderId:'WO-20250526-001',ts:'2025-05-26T09:15:00',input:'scan',role:'operator'},
+  {id:'R004',empId:'E004',empName:'張美玲',stationId:'ST-04',stationName:'清洗站D',workOrderId:'WO-20250526-001',ts:'2025-05-26T09:55:00',input:'manual',role:'support'},
+  {id:'R005',empId:'E005',empName:'吳建國',stationId:'ST-05',stationName:'包裝站E',workOrderId:'WO-20250526-001',ts:'2025-05-26T10:30:00',input:'scan',role:'operator'},
+  {id:'R006',empId:'E001',empName:'陳大明',stationId:'ST-01',stationName:'插件站A',workOrderId:'WO-20250526-002',ts:'2025-05-26T11:00:00',input:'scan',role:'operator'},
+  {id:'R007',empId:'E006',empName:'劉雅婷',stationId:'ST-01',stationName:'插件站A',workOrderId:'WO-20250526-002',ts:'2025-05-26T11:05:00',input:'scan',role:'support'},
+  {id:'R008',empId:'E002',empName:'林小芳',stationId:'ST-02',stationName:'焊接站B',workOrderId:'WO-20250526-002',ts:'2025-05-26T11:45:00',input:'scan',role:'operator'},
+  {id:'R009',empId:'E007',empName:'趙偉強',stationId:'ST-03',stationName:'檢驗站C',workOrderId:'WO-20250526-002',ts:'2025-05-26T12:20:00',input:'scan',role:'operator'},
+  {id:'R010',empId:'E003',empName:'王志豪',stationId:'ST-02',stationName:'焊接站B',workOrderId:'WO-20250525-001',ts:'2025-05-25T14:10:00',input:'manual',role:'operator'},
+  {id:'R011',empId:'E004',empName:'張美玲',stationId:'ST-03',stationName:'檢驗站C',workOrderId:'WO-20250525-001',ts:'2025-05-25T14:55:00',input:'scan',role:'operator'},
+  {id:'R012',empId:'E005',empName:'吳建國',stationId:'ST-04',stationName:'清洗站D',workOrderId:'WO-20250525-001',ts:'2025-05-25T15:30:00',input:'scan',role:'support'},
+  {id:'R013',empId:'E001',empName:'陳大明',stationId:'ST-01',stationName:'插件站A',workOrderId:'WO-20250526-003',ts:'2025-05-26T14:00:00',input:'scan',role:'operator'},
+  {id:'R014',empId:'E006',empName:'劉雅婷',stationId:'ST-02',stationName:'焊接站B',workOrderId:'WO-20250526-003',ts:'2025-05-26T14:35:00',input:'scan',role:'operator'},
+];
 
-const video = document.getElementById('video');
-const cap = document.getElementById('cap');
-const ctx = cap.getContext('2d', { willReadFrequently: true });
+const STATION_STATUS = [
+  {stationId:'ST-01',stationName:'插件站A',operators:[{empId:'E001',empName:'陳大明',role:'operator',since:'08:00'},{empId:'E006',empName:'劉雅婷',role:'support',since:'11:05'}]},
+  {stationId:'ST-02',stationName:'焊接站B',operators:[{empId:'E006',empName:'劉雅婷',role:'operator',since:'14:35'}]},
+  {stationId:'ST-03',stationName:'檢驗站C',operators:[]},
+  {stationId:'ST-04',stationName:'清洗站D',operators:[{empId:'E004',empName:'張美玲',role:'operator',since:'09:00'}]},
+  {stationId:'ST-05',stationName:'包裝站E',operators:[]},
+  {stationId:'ST-06',stationName:'測試站F',operators:[{empId:'E007',empName:'趙偉強',role:'operator',since:'13:30'}]},
+];
+// ─────────────────────────────────────────
 
-function dbg(msg) {
-  document.getElementById('debugBar').textContent = '狀態：' + msg;
-  console.log('[Scanner]', msg);
+const PAGE_META = {
+  forward:  {title:'正向追溯',     sub:'輸入工單號，查出完整製程路徑與各站操作員'},
+  reverse:  {title:'反向追溯',     sub:'輸入工站與時段，找出所有操作記錄'},
+  employee: {title:'員工操作記錄', sub:'依員工與日期篩選所有掃碼記錄'},
+  station:  {title:'工站在線狀況', sub:'即時顯示各工站目前在線人員'},
+};
+
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.querySelector('[data-page="' + p + '"]').classList.add('active');
+  document.getElementById('topbar-title').textContent = PAGE_META[p].title;
+  document.getElementById('topbar-sub').textContent = PAGE_META[p].sub;
+  if (p === 'station') renderStation();
 }
 
-// ── 頁面切換 ──────────────────────────────────────
-function switchPage(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  el.classList.add('active');
-  if (page === 'history') renderHistory();
-}
+// clock
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-TW');
+}, 1000);
+document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-TW');
 
-// ── 主控制 ────────────────────────────────────────
-async function toggleScan() {
-  if (scanning) { stopScan(); return; }
-  await startScan();
-}
+function badge(cls, txt) { return `<span class="badge ${cls}">${txt}</span>`; }
+function roleBadge(r)  { return r === 'operator' ? badge('badge-op','操作員') : badge('badge-sup','支援'); }
+function inputBadge(i) { return i === 'scan' ? badge('badge-scan','掃碼') : badge('badge-manual','手動'); }
+function fmtTs(ts) { return ts.replace('T',' ').slice(0,16); }
 
-async function startScan() {
-  const btn = document.getElementById('mainBtn');
-  btn.disabled = true;
-  btn.textContent = '啟動中…';
-  dbg('請求相機權限…');
+// ── 初始化下拉選單 ──
+const ALL_STATIONS = [...new Set(RECORDS.map(r => r.stationId))]
+  .map(id => ({ id, name: RECORDS.find(r => r.stationId === id).stationName }));
+const ALL_EMPS = [...new Set(RECORDS.map(r => r.empId))]
+  .map(id => ({ id, name: RECORDS.find(r => r.empId === id).empName }));
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    });
+['rev-station','emp-station'].forEach(sid => {
+  const sel = document.getElementById(sid);
+  ALL_STATIONS.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+});
+const empSel = document.getElementById('emp-id');
+ALL_EMPS.forEach(e => { const o = document.createElement('option'); o.value = e.id; o.textContent = e.name + '（' + e.id + '）'; empSel.appendChild(o); });
 
-    currentStream = stream;
-    video.srcObject = stream;
-    video.setAttribute('playsinline', true);
+// 預設時間
+document.getElementById('rev-start').value = '2025-05-26T08:00';
+document.getElementById('rev-end').value   = '2025-05-26T16:00';
+document.getElementById('emp-date-start').value = '2025-05-25';
+document.getElementById('emp-date-end').value   = '2025-05-26';
 
-    await new Promise((res, rej) => {
-      video.onloadedmetadata = res;
-      video.onerror = rej;
-      setTimeout(res, 3000); // fallback
-    });
+// ── 正向追溯 ──
+function runForward() {
+  const wo = document.getElementById('fwd-wo').value.trim();
+  const el = document.getElementById('fwd-result');
+  if (!wo) { el.innerHTML = emptyHtml('請輸入工單號', '在上方輸入框填入工單號後點擊查詢'); return; }
+  const rows = RECORDS.filter(r => r.workOrderId.toLowerCase() === wo.toLowerCase())
+    .sort((a, b) => a.ts.localeCompare(b.ts));
+  if (!rows.length) { el.innerHTML = emptyHtml('找不到記錄', '工單號 ' + wo + ' 沒有相關掃碼記錄'); return; }
 
-    await video.play();
-    dbg('相機啟動，影像：' + video.videoWidth + 'x' + video.videoHeight);
+  const stMap = {};
+  rows.forEach(r => {
+    if (!stMap[r.stationId]) stMap[r.stationId] = { name: r.stationName, ops: [], ts: r.ts };
+    stMap[r.stationId].ops.push(r);
+  });
+  const stations = Object.values(stMap).sort((a, b) => a.ts.localeCompare(b.ts));
 
-    // Torch
-    const [track] = stream.getVideoTracks();
-    torchTrack = track;
-    try {
-      const caps = track.getCapabilities ? track.getCapabilities() : {};
-      if (caps.torch) document.getElementById('torchBtn').classList.remove('hidden');
-    } catch(e){}
-
-    showViewfinder();
-    startDetecting();
-
-  } catch(e) {
-    dbg('錯誤：' + (e.name || e.message));
-    btn.disabled = false;
-    btn.textContent = '啟動相機掃描';
-    if (e.name === 'NotAllowedError') alert('請允許相機權限後再試');
-    else if (e.name === 'NotFoundError') alert('找不到相機裝置');
-    else alert('相機啟動失敗：' + e.message);
-  }
-}
-
-function showViewfinder() {
-  scanning = true;
-  document.getElementById('camPlaceholder').classList.add('hidden');
-  document.getElementById('viewfinder-wrap').classList.remove('hidden');
-  const btn = document.getElementById('mainBtn');
-  btn.disabled = false;
-  btn.textContent = '停止掃描';
-  btn.classList.add('stop');
-}
-
-function stopScan() {
-  scanning = false;
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
-  torchTrack = null; torchOn = false;
-  document.getElementById('torchBtn').classList.add('hidden');
-  document.getElementById('torchBtn').classList.remove('on');
-  document.getElementById('viewfinder-wrap').classList.add('hidden');
-  document.getElementById('camPlaceholder').classList.remove('hidden');
-  const btn = document.getElementById('mainBtn');
-  btn.disabled = false;
-  btn.textContent = '啟動相機掃描';
-  btn.classList.remove('stop');
-  dbg('已停止');
-}
-
-// ── 偵測邏輯：優先 BarcodeDetector，備用 Canvas+BarcodeDetector ──
-let detector = null;
-let frameCount = 0;
-
-async function startDetecting() {
-  // 建立 detector
-  if ('BarcodeDetector' in window) {
-    try {
-      let fmts = ['qr_code','ean_13','ean_8','code_128','code_39','data_matrix','pdf417','aztec','upc_a','upc_e','itf'];
-      try {
-        const sup = await BarcodeDetector.getSupportedFormats();
-        if (sup && sup.length) fmts = sup;
-      } catch(e){}
-      detector = new BarcodeDetector({ formats: fmts });
-      dbg('BarcodeDetector 就緒，格式：' + fmts.length + ' 種，掃描中…');
-    } catch(e) {
-      detector = null;
-      dbg('BarcodeDetector 建立失敗，改用 Canvas 模式');
-    }
-  } else {
-    dbg('瀏覽器不支援 BarcodeDetector，嘗試 Canvas 模式…');
-  }
-
-  frameCount = 0;
-  detectLoop();
-}
-
-async function detectLoop() {
-  if (!scanning) return;
-  frameCount++;
-
-  if (video.readyState >= 2 && video.videoWidth > 0) {
-    // 每 6 幀偵測一次（約 10fps on 60fps screen）
-    if (frameCount % 6 === 0) {
-      await tryDetect();
-    }
-  }
-
-  rafId = requestAnimationFrame(detectLoop);
-}
-
-async function tryDetect() {
-  try {
-    if (detector) {
-      // 方法 A：直接從 video element 偵測
-      const codes = await detector.detect(video);
-      if (codes.length > 0) {
-        handleResult(codes[0].rawValue, codes[0].format);
-        return;
-      }
-
-      // 方法 B：先畫到 canvas 再偵測（部分裝置需要）
-      cap.width = video.videoWidth;
-      cap.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const codes2 = await detector.detect(cap);
-      if (codes2.length > 0) {
-        handleResult(codes2[0].rawValue, codes2[0].format);
-        return;
-      }
-    }
-  } catch(e) {
-    // 靜默失敗，繼續偵測
-  }
-}
-
-// ── 結果處理 ──────────────────────────────────────
-function handleResult(text, format) {
-  if (text === lastResult) return;
-  lastResult = text;
-
-  const ind = document.getElementById('beepInd');
-  ind.style.opacity = '1';
-  setTimeout(() => ind.style.opacity = '0', 200);
-  try { navigator.vibrate && navigator.vibrate(50); } catch(e){}
-
-  const now = new Date();
-  const entry = { text, format: String(format || 'QR_CODE'), time: now.toISOString() };
-  history.unshift(entry);
-  if (history.length > 50) history = history.slice(0, 50);
-  try { localStorage.setItem('scanHistory', JSON.stringify(history)); } catch(e){}
-
-  showResult(text, format, now);
-  stopScan();
-  dbg('✅ 掃描成功：' + String(format));
-}
-
-function showResult(text, format, date) {
-  document.getElementById('resultType').textContent = fmtLabel(String(format || ''));
-  document.getElementById('resultText').textContent = text;
-  document.getElementById('resultText').style.color = 'var(--text)';
-  document.getElementById('resultTime').textContent = date ? timeStr(date) : '';
-  document.getElementById('resultActions').style.display = 'flex';
-  document.getElementById('openLinkBtn').style.display = /^https?:\/\//i.test(text) ? 'inline-flex' : 'none';
-}
-
-function fmtLabel(fmt) {
-  const m = { QR_CODE:'QR Code', qr_code:'QR Code', EAN_13:'EAN-13', ean_13:'EAN-13', EAN_8:'EAN-8', ean_8:'EAN-8', CODE_128:'Code 128', code_128:'Code 128', CODE_39:'Code 39', code_39:'Code 39', DATA_MATRIX:'Data Matrix', data_matrix:'Data Matrix', PDF_417:'PDF417', pdf417:'PDF417', AZTEC:'Aztec', aztec:'Aztec', UPC_A:'UPC-A', upc_a:'UPC-A', UPC_E:'UPC-E', upc_e:'UPC-E', ITF:'ITF', itf:'ITF' };
-  return m[fmt] || fmt || '條碼';
-}
-
-function timeStr(d) { return d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-
-function copyResult() {
-  const t = document.getElementById('resultText').textContent;
-  if (navigator.clipboard) navigator.clipboard.writeText(t).then(()=>flash('已複製！')).catch(()=>fallbackCopy(t));
-  else fallbackCopy(t);
-}
-function fallbackCopy(t) {
-  const ta = document.createElement('textarea'); ta.value = t;
-  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-  document.body.removeChild(ta); flash('已複製！');
-}
-function openResult() { window.open(document.getElementById('resultText').textContent,'_blank'); }
-function shareResult() {
-  const t = document.getElementById('resultText').textContent;
-  if (navigator.share) navigator.share({title:'掃描結果',text:t}); else copyResult();
-}
-function clearResult() {
-  lastResult = null;
-  document.getElementById('resultType').textContent = '等待中';
-  document.getElementById('resultText').textContent = '尚未掃描任何條碼';
-  document.getElementById('resultText').style.color = 'var(--muted)';
-  document.getElementById('resultActions').style.display = 'none';
-  document.getElementById('resultTime').textContent = '';
-}
-
-async function toggleTorch() {
-  if (!torchTrack) return;
-  torchOn = !torchOn;
-  try { await torchTrack.applyConstraints({advanced:[{torch:torchOn}]}); document.getElementById('torchBtn').classList.toggle('on',torchOn); }
-  catch(e) { flash('手電筒不支援'); torchOn=false; }
-}
-
-function flash(msg) {
-  const el = document.getElementById('flashMsg');
-  el.textContent = msg; el.style.opacity = '1';
-  setTimeout(()=>el.style.opacity='0', 1400);
-}
-
-function renderHistory() {
-  const c = document.getElementById('historyList');
-  if (!history.length) { c.innerHTML = '<div class="history-empty">尚無記錄<br><span style="font-size:12px;">掃描後自動儲存</span></div>'; return; }
-  c.innerHTML = history.map((item,i) => `
-    <div class="history-item" onclick="useHistory(${i})">
-      <div class="hi-top">
-        <span class="hi-badge">${fmtLabel(item.format)}</span>
-        <span class="hi-time">${new Date(item.time).toLocaleDateString('zh-TW')} ${timeStr(new Date(item.time))}</span>
+  let html = `<div class="card">
+    <div class="wo-header">
+      <div>
+        <div class="wo-label">工單號</div>
+        <div class="wo-id">${wo}</div>
       </div>
-      <div class="hi-text">${esc(item.text)}</div>
+      <div class="wo-stats">${stations.length} 個工站 · ${rows.length} 筆記錄</div>
+    </div>
+    <div class="trace-list">`;
+  stations.forEach((st, i) => {
+    html += `<div class="trace-item">
+      <div class="trace-spine">
+        <div class="trace-dot"></div>
+        ${i < stations.length - 1 ? '<div class="trace-line"></div>' : ''}
+      </div>
+      <div class="trace-body">
+        <div class="trace-station-name">${st.name}</div>
+        <div class="trace-ops">`;
+    st.ops.forEach(op => {
+      html += `<div class="trace-op-row">
+        <div class="avatar">${op.empName.slice(-1)}</div>
+        <span style="font-size:13px;font-weight:700;color:var(--text)">${op.empName}</span>
+        <span style="font-size:11px;color:var(--text3)">${op.empId}</span>
+        ${roleBadge(op.role)}${inputBadge(op.input)}
+        <span class="trace-time">${fmtTs(op.ts)}</span>
+      </div>`;
+    });
+    html += `</div></div></div>`;
+  });
+  html += `</div></div>`;
+  el.innerHTML = html;
+}
+
+// ── 反向追溯 ──
+function runReverse() {
+  const sid    = document.getElementById('rev-station').value;
+  const start  = document.getElementById('rev-start').value;
+  const end    = document.getElementById('rev-end').value;
+  const empF   = document.getElementById('rev-emp').value.trim().toLowerCase();
+  const el     = document.getElementById('rev-result');
+
+  const rows = RECORDS.filter(r => {
+    const inSt  = !sid   || r.stationId === sid;
+    const inT   = (!start || r.ts >= start + ':00') && (!end || r.ts <= end + ':59');
+    const inEmp = !empF  || r.empId.toLowerCase().includes(empF) || r.empName.includes(empF);
+    return inSt && inT && inEmp;
+  }).sort((a, b) => a.ts.localeCompare(b.ts));
+
+  if (!rows.length) { el.innerHTML = emptyHtml('無符合記錄', '請調整篩選條件後重新查詢'); return; }
+  el.innerHTML = tableHtml(rows, ['時間','工站','員工','工單號','角色','輸入方式'], rows.map(r => [
+    fmtTs(r.ts), r.stationName,
+    `${r.empName}<br><span class="mono">${r.empId}</span>`,
+    `<span class="mono">${r.workOrderId}</span>`,
+    roleBadge(r.role), inputBadge(r.input)
+  ]), rows.length + ' 筆記錄');
+}
+
+// ── 員工記錄 ──
+function runEmployee() {
+  const empId = document.getElementById('emp-id').value;
+  const ds    = document.getElementById('emp-date-start').value;
+  const de    = document.getElementById('emp-date-end').value;
+  const stF   = document.getElementById('emp-station').value;
+  const el    = document.getElementById('emp-result');
+
+  const rows = RECORDS.filter(r => {
+    const d = r.ts.slice(0,10);
+    return (!empId || r.empId === empId) && (!ds || d >= ds) && (!de || d <= de) && (!stF || r.stationId === stF);
+  }).sort((a, b) => b.ts.localeCompare(a.ts));
+
+  if (!rows.length) { el.innerHTML = emptyHtml('無符合記錄', '請調整篩選條件後重新查詢'); return; }
+  const empCount = new Set(rows.map(r => r.empId)).size;
+  el.innerHTML = tableHtml(rows, ['時間','員工','工站','工單號','角色','輸入方式'], rows.map(r => [
+    fmtTs(r.ts),
+    `${r.empName}<br><span class="mono">${r.empId}</span>`,
+    r.stationName,
+    `<span class="mono">${r.workOrderId}</span>`,
+    roleBadge(r.role), inputBadge(r.input)
+  ]), `${rows.length} 筆記錄，共 ${empCount} 位員工`);
+}
+
+// ── 工站狀態 ──
+function renderStation() {
+  const online = STATION_STATUS.filter(s => s.operators.length > 0);
+  const total  = STATION_STATUS.reduce((a, s) => a + s.operators.length, 0);
+  const today  = RECORDS.filter(r => r.ts.startsWith('2025-05-26')).length;
+
+  document.getElementById('stat-grid').innerHTML = [
+    ['在線工站', online.length + ' / ' + STATION_STATUS.length, ''],
+    ['在線人員', total, '名'],
+    ['空閒工站', STATION_STATUS.length - online.length, '個'],
+    ['今日記錄', today, '筆'],
+  ].map(([label, val, sub]) => `
+    <div class="stat-card">
+      <div class="stat-label">${label}</div>
+      <div class="stat-val">${val}</div>
+      ${sub ? `<div class="stat-sub">${sub}</div>` : ''}
     </div>`).join('');
+
+  document.getElementById('station-grid').innerHTML = STATION_STATUS.map(s => {
+    const active = s.operators.length > 0;
+    return `<div class="station-card${active ? ' active-st' : ''}">
+      <div class="station-name-row">
+        <div>
+          <div class="station-id">${s.stationId}</div>
+          <div class="station-display-name">${s.stationName}</div>
+        </div>
+        ${active ? badge('badge-online','在線') : badge('badge-offline','空閒')}
+      </div>
+      <div class="operator-list">
+        ${active ? s.operators.map(op => `
+          <div class="op-row">
+            <div class="avatar">${op.empName.slice(-1)}</div>
+            <div>
+              <div class="op-name">${op.empName}</div>
+              <div class="op-meta">${op.empId} · ${op.role === 'operator' ? '操作員' : '支援'} · ${op.since} 起</div>
+            </div>
+          </div>`).join('') : `<div class="op-meta" style="padding:4px 0">目前無人</div>`}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function useHistory(i) {
-  const item = history[i];
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-scan').classList.add('active');
-  document.querySelectorAll('.tab')[0].classList.add('active');
-  showResult(item.text, item.format, new Date(item.time));
+// ── 共用 helpers ──
+function tableHtml(rows, headers, cells, meta) {
+  return `<div class="card">
+    <div class="result-meta">${meta}</div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${cells.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div></div>`;
 }
-
-function clearHistory() {
-  history=[]; try{localStorage.setItem('scanHistory','[]');}catch(e){}
-  renderHistory(); flash('記錄已清除');
+function emptyHtml(title, sub) {
+  return `<div class="card"><div class="empty">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">${title}</div>
+    <div class="empty-sub">${sub}</div>
+  </div></div>`;
 }
-
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
 </html>
