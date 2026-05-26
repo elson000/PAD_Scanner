@@ -190,8 +190,9 @@ tbody tr:hover td{background:#FAFAF7}
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>工站狀態
     </div>
   </div>
-  <div class="sb-footer">
+  <div class="sb-footer" style="display:flex;flex-direction:column;gap:8px">
     <a href="index.html" class="sb-link">→ 前端操作介面</a>
+    <button onclick="resetSeed()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 4px">↺ 重置範例資料</button>
   </div>
 </nav>
 
@@ -363,17 +364,39 @@ function seedDefaults() {
     ]);
   }
   if (!LS.logs().length) {
+    // 用今天日期產生種子記錄，確保「今日記錄」統計正確
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    const d = (date, time) => date + 'T' + time;
     const seed=[
-      {id:'R001',ts:'2025-05-26T08:05:00',workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
-      {id:'R002',ts:'2025-05-26T08:42:00',workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
-      {id:'R003',ts:'2025-05-26T09:15:00',workers:[{empId:'E003',empName:'王志豪',method:'scan',role:'operator'}],stationId:'ST-03',stationName:'檢驗站C',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
-      {id:'R004',ts:'2025-05-26T09:55:00',workers:[{empId:'E004',empName:'張美玲',method:'manual',role:'operator'},{empId:'E005',empName:'吳建國',method:'scan',role:'support'}],stationId:'ST-04',stationName:'清洗站D',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
-      {id:'R005',ts:'2025-05-26T10:30:00',workers:[{empId:'E005',empName:'吳建國',method:'scan',role:'operator'}],stationId:'ST-05',stationName:'包裝站E',stationMethod:'scan',workOrderId:'WO-20250526-001',orderMethod:'scan'},
-      {id:'R006',ts:'2025-05-26T11:00:00',workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'},{empId:'E006',empName:'劉雅婷',method:'scan',role:'support'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-20250526-002',orderMethod:'scan'},
-      {id:'R007',ts:'2025-05-26T11:45:00',workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250526-002',orderMethod:'manual'},
-      {id:'R008',ts:'2025-05-25T14:10:00',workers:[{empId:'E003',empName:'王志豪',method:'manual',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-20250525-001',orderMethod:'scan'},
+      {id:'R001',ts:d(today,'08:05:00'),workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-001',orderMethod:'scan'},
+      {id:'R002',ts:d(today,'08:42:00'),workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-001',orderMethod:'scan'},
+      {id:'R003',ts:d(today,'09:15:00'),workers:[{empId:'E003',empName:'王志豪',method:'scan',role:'operator'}],stationId:'ST-03',stationName:'檢驗站C',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-001',orderMethod:'scan'},
+      {id:'R004',ts:d(today,'09:55:00'),workers:[{empId:'E004',empName:'張美玲',method:'manual',role:'operator'},{empId:'E005',empName:'吳建國',method:'scan',role:'support'}],stationId:'ST-04',stationName:'清洗站D',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-001',orderMethod:'scan'},
+      {id:'R005',ts:d(today,'10:30:00'),workers:[{empId:'E005',empName:'吳建國',method:'scan',role:'operator'}],stationId:'ST-05',stationName:'包裝站E',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-001',orderMethod:'scan'},
+      {id:'R006',ts:d(today,'11:00:00'),workers:[{empId:'E001',empName:'陳大明',method:'scan',role:'operator'},{empId:'E006',empName:'劉雅婷',method:'scan',role:'support'}],stationId:'ST-01',stationName:'插件站A',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-002',orderMethod:'scan'},
+      {id:'R007',ts:d(today,'11:45:00'),workers:[{empId:'E002',empName:'林小芳',method:'scan',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-'+today.replace(/-/g,'')+'-002',orderMethod:'manual'},
+      {id:'R008',ts:d(yesterday,'14:10:00'),workers:[{empId:'E003',empName:'王志豪',method:'manual',role:'operator'}],stationId:'ST-02',stationName:'焊接站B',stationMethod:'scan',workOrderId:'WO-'+yesterday.replace(/-/g,'')+'-001',orderMethod:'scan'},
     ];
     LS.save('logs', seed);
+  }
+  // 初始化工站在線狀態種子（模擬目前部分工站有人）
+  if (!LS.status().length) {
+    LS.save('station_status', [
+      {stationId:'ST-01',stationName:'插件站A',operators:[
+        {empId:'E001',empName:'陳大明',role:'operator',since:'08:00'},
+        {empId:'E006',empName:'劉雅婷',role:'support',since:'11:05'}
+      ]},
+      {stationId:'ST-02',stationName:'焊接站B',operators:[
+        {empId:'E002',empName:'林小芳',role:'operator',since:'08:40'}
+      ]},
+      {stationId:'ST-03',stationName:'檢驗站C',operators:[]},
+      {stationId:'ST-04',stationName:'清洗站D',operators:[
+        {empId:'E004',empName:'張美玲',role:'operator',since:'09:00'}
+      ]},
+      {stationId:'ST-05',stationName:'包裝站E',operators:[]},
+      {stationId:'ST-06',stationName:'測試站F',operators:[]},
+    ]);
   }
 }
 
@@ -671,11 +694,28 @@ function hideErr2(id){document.getElementById(id).style.display='none';}
 // 點 modal 背景關閉
 document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.add('hidden');});});
 
-// ── 預設時間 ──
-document.getElementById('rev-s').value='2025-05-26T08:00';
-document.getElementById('rev-e').value='2025-05-26T18:00';
-document.getElementById('er-ds').value='2025-05-25';
-document.getElementById('er-de').value='2025-05-26';
+// ── 重置範例資料 ──
+function resetSeed() {
+  if (!confirm('確定重置所有範例資料？
+（現有的工站、員工、記錄、狀態都會被清除並重新填入）')) return;
+  ['stations','employees','logs','station_status'].forEach(k => localStorage.removeItem('dip_' + k));
+  seedDefaults();
+  renderStations();
+  renderEmployees();
+  refreshSelectLists();
+  alert('範例資料已重置，工站狀態頁也已更新。');
+}
+
+// ── 預設時間（動態用今天日期）──
+(function(){
+  const now = new Date();
+  const today = now.toISOString().slice(0,10);
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  document.getElementById('rev-s').value = today + 'T00:00';
+  document.getElementById('rev-e').value = today + 'T23:59';
+  document.getElementById('er-ds').value = yesterday;
+  document.getElementById('er-de').value = today;
+})();
 
 // ── Init ──
 seedDefaults();
