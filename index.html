@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>條碼掃描器</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: rgba(255,255,255,0.08);
+    --accent: #4fc3f7;
+    --accent2: #7c4dff;
+    --text: #f0f0ff;
+    --muted: rgba(240,240,255,0.45);
+    --success: #4caf93;
+    --warn: #e8a838;
+    --radius: 16px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .logo {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid rgba(79,195,247,0.25);
+  }
+
+  .scanner-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 16px;
+  }
+
+  .viewfinder-wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 1/1;
+  }
+
+  #video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--radius);
+  }
+
+  .scan-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-color: var(--accent);
+    border-style: solid;
+    border-width: 0;
+  }
+  .corner.tl { top: 16px; left: 16px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 4px; }
+  .corner.tr { top: 16px; right: 16px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 4px; }
+  .corner.bl { bottom: 16px; left: 16px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 4px; }
+  .corner.br { bottom: 16px; right: 16px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 4px; }
+
+  .scan-line {
+    position: absolute;
+    left: 16px; right: 16px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scanMove 2.2s ease-in-out infinite;
+    top: 16px;
+  }
+
+  @keyframes scanMove {
+    0% { top: 16px; opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { top: calc(100% - 18px); opacity: 0.8; }
+  }
+
+  .cam-placeholder {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1/1;
+    border-radius: var(--radius);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .cam-icon {
+    font-size: 48px;
+    opacity: 0.4;
+  }
+
+  .cam-status {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 320px;
+  }
+
+  .result-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    min-height: 80px;
+  }
+
+  .result-header {
+    padding: 10px 14px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-type-badge {
+    background: rgba(79,195,247,0.12);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .result-body {
+    padding: 14px;
+  }
+
+  .result-text {
+    font-size: 15px;
+    word-break: break-all;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .btn-sm:active { transform: scale(0.96); }
+  .btn-sm.primary { background: rgba(79,195,247,0.12); border-color: rgba(79,195,247,0.3); color: var(--accent); }
+
+  .btn-main {
+    width: 100%;
+    max-width: 420px;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: none;
+    background: linear-gradient(135deg, #2979ff, var(--accent2));
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-main:active { opacity: 0.85; }
+  .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-main.stop { background: linear-gradient(135deg, #c62828, #e53935); }
+
+  .history-section {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .history-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 48px 24px;
+  }
+
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .history-item:active { border-color: var(--accent); }
+
+  .hi-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .hi-badge {
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .hi-time { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  .hi-text {
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .history-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 16px 8px;
+  }
+
+  .flash-success {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(76,175,147,0.95);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .torch-btn {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .torch-btn.on { background: rgba(255,200,0,0.3); border-color: rgba(255,200,0,0.6); color: #ffc800; }
+
+  .page { display: none; flex-direction: column; flex: 1; }
+  .page.active { display: flex; }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 16px 8px;
+  }
+
+  .beep-indicator {
+    position: absolute;
+    inset: 0;
+    background: rgba(79,195,247,0.15);
+    border-radius: var(--radius);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">掃描器 PWA</span>
+  <span style="font-size:11px;color:var(--muted);">免安裝 · 離線可用</span>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchPage('scan')">📷 掃描</button>
+  <button class="tab" onclick="switchPage('history')">📋 記錄</button>
+</div>
+
+<!-- SCAN PAGE -->
+<div class="page active" id="page-scan">
+  <div class="scanner-area">
+
+    <div id="viewfinder-wrap" class="viewfinder-wrap hidden">
+      <video id="video" playsinline autoplay muted></video>
+      <div class="scan-overlay">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line" id="scanLine"></div>
+        <div class="beep-indicator" id="beepIndicator"></div>
+      </div>
+      <div class="torch-btn hidden" id="torchBtn" onclick="toggleTorch()">💡</div>
+    </div>
+
+    <div id="camPlaceholder" class="cam-placeholder">
+      <div class="cam-icon">📷</div>
+      <div style="font-size:15px;color:var(--text);font-weight:500;">按下啟動掃描</div>
+      <div class="cam-status" id="camStatus">支援 QR Code、條碼、Data Matrix 等格式</div>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-header">
+        <span>掃描結果</span>
+        <span class="result-type-badge" id="resultType">等待中</span>
+        <span style="margin-left:auto;font-size:11px;" id="resultTime"></span>
+      </div>
+      <div class="result-body">
+        <div class="result-text" id="resultText" style="color:var(--muted);">尚未掃描任何條碼</div>
+        <div class="result-actions" id="resultActions" style="display:none;">
+          <button class="btn-sm primary" onclick="copyResult()">複製</button>
+          <button class="btn-sm" id="openLinkBtn" onclick="openResult()" style="display:none;">開啟連結</button>
+          <button class="btn-sm" onclick="shareResult()">分享</button>
+          <button class="btn-sm" onclick="clearResult()">清除</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-main" id="mainBtn" onclick="toggleScan()">啟動相機掃描</button>
+
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 4px;">
+    <span class="section-label" style="padding:0;">掃描記錄</span>
+    <button class="btn-sm" onclick="clearHistory()">清除全部</button>
+  </div>
+  <div class="history-section" id="historyList">
+    <div class="history-empty">尚無記錄<br><span style="font-size:12px;">掃描後會自動儲存</span></div>
+  </div>
+</div>
+
+<div class="flash-success" id="flashMsg"></div>
+
+<canvas id="captureCanvas" style="display:none;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/zxing-js__browser@0.1.1/dist/zxing-browser.min.js"></script>
+<script>
+let scanning = false;
+let codeReader = null;
+let currentStream = null;
+let torchOn = false;
+let torchTrack = null;
+let lastResult = null;
+let history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+  if (page === 'history') renderHistory();
+}
+
+async function toggleScan() {
+  if (scanning) {
+    stopScan();
+  } else {
+    await startScan();
+  }
+}
+
+async function startScan() {
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = true;
+  btn.textContent = '啟動中…';
+
+  try {
+    // Try BarcodeDetector API first (Chrome / Xiaomi browser)
+    if ('BarcodeDetector' in window) {
+      await startWithBarcodeDetector();
+    } else {
+      await startWithZxing();
+    }
+  } catch(e) {
+    console.error(e);
+    showError(e);
+    btn.disabled = false;
+    btn.textContent = '啟動相機掃描';
+  }
+}
+
+async function startWithBarcodeDetector() {
+  const supported = await BarcodeDetector.getSupportedFormats();
+  document.getElementById('camStatus').textContent = '使用原生 BarcodeDetector · 支援：' + supported.slice(0,4).join(', ') + '…';
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+  });
+
+  currentStream = stream;
+  const video = document.getElementById('video');
+  video.srcObject = stream;
+  await video.play();
+
+  // Try torch
+  const [track] = stream.getVideoTracks();
+  torchTrack = track;
+  const caps = track.getCapabilities();
+  if (caps && caps.torch) {
+    document.getElementById('torchBtn').classList.remove('hidden');
+  }
+
+  showViewfinder();
+
+  const detector = new BarcodeDetector({ formats: supported });
+  let detecting = false;
+
+  const detect = async () => {
+    if (!scanning) return;
+    if (!detecting && video.readyState >= 2) {
+      detecting = true;
+      try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+          const code = barcodes[0];
+          handleResult(code.rawValue, code.format);
+        }
+      } catch(e) {}
+      detecting = false;
+    }
+    if (scanning) requestAnimationFrame(detect);
+  };
+  detect();
+}
+
+async function startWithZxing() {
+  document.getElementById('camStatus').textContent = '使用 ZXing 函式庫掃描';
+
+  if (!window.ZXingBrowser) {
+    throw new Error('ZXing 函式庫載入失敗，請檢查網路連線');
+  }
+
+  codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+  const devices = await ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices();
+  const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1];
+  const deviceId = backCam ? backCam.deviceId : undefined;
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }
+  });
+
+  currentStream = stream;
+  showViewfinder();
+
+  const video = document.getElementById('video');
+  video.srcObject = stream;
+  await video.play();
+
+  codeReader.decodeFromStream(stream, video, (result, err) => {
+    if (result) {
+      handleResult(result.getText(), result.getBarcodeFormat().toString());
+    }
+  });
+}
+
+function showViewfinder() {
+  scanning = true;
+  document.getElementById('camPlaceholder').classList.add('hidden');
+  document.getElementById('viewfinder-wrap').classList.remove('hidden');
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = false;
+  btn.textContent = '停止掃描';
+  btn.classList.add('stop');
+}
+
+function stopScan() {
+  scanning = false;
+  if (codeReader) { try { codeReader.reset(); } catch(e){} codeReader = null; }
+  if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+  torchTrack = null;
+  torchOn = false;
+  document.getElementById('torchBtn').classList.add('hidden');
+  document.getElementById('torchBtn').classList.remove('on');
+  document.getElementById('viewfinder-wrap').classList.add('hidden');
+  document.getElementById('camPlaceholder').classList.remove('hidden');
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = false;
+  btn.textContent = '啟動相機掃描';
+  btn.classList.remove('stop');
+}
+
+function handleResult(text, format) {
+  if (lastResult === text) return;
+  lastResult = text;
+
+  // Flash
+  const ind = document.getElementById('beepIndicator');
+  ind.style.opacity = '1';
+  setTimeout(() => ind.style.opacity = '0', 150);
+  vibrate();
+
+  const now = new Date();
+  const entry = { text, format: format || 'UNKNOWN', time: now.toISOString() };
+  history.unshift(entry);
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('scanHistory', JSON.stringify(history));
+
+  showResult(text, format, now);
+  stopScan();
+}
+
+function showResult(text, format, date) {
+  document.getElementById('resultType').textContent = formatLabel(format);
+  document.getElementById('resultText').textContent = text;
+  document.getElementById('resultText').style.color = 'var(--text)';
+  document.getElementById('resultTime').textContent = date ? timeStr(date) : '';
+  document.getElementById('resultActions').style.display = 'flex';
+
+  const linkBtn = document.getElementById('openLinkBtn');
+  if (/^https?:\/\//i.test(text)) {
+    linkBtn.style.display = 'inline-flex';
+  } else {
+    linkBtn.style.display = 'none';
+  }
+
+  lastResult = text;
+}
+
+function formatLabel(fmt) {
+  const map = {
+    'qr_code': 'QR Code', 'QR_CODE': 'QR Code',
+    'ean_13': 'EAN-13', 'EAN_13': 'EAN-13',
+    'ean_8': 'EAN-8', 'EAN_8': 'EAN-8',
+    'code_128': 'Code 128', 'CODE_128': 'Code 128',
+    'code_39': 'Code 39', 'CODE_39': 'Code 39',
+    'data_matrix': 'Data Matrix', 'DATA_MATRIX': 'Data Matrix',
+    'pdf417': 'PDF417', 'PDF_417': 'PDF417',
+    'aztec': 'Aztec', 'AZTEC': 'Aztec',
+    'itf': 'ITF', 'ITF': 'ITF',
+    'upc_a': 'UPC-A', 'UPC_A': 'UPC-A',
+    'upc_e': 'UPC-E', 'UPC_E': 'UPC-E',
+  };
+  return map[fmt] || fmt || '條碼';
+}
+
+function timeStr(d) {
+  return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function copyResult() {
+  const text = document.getElementById('resultText').textContent;
+  navigator.clipboard?.writeText(text).then(() => flash('已複製！')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    flash('已複製！');
+  });
+}
+
+function openResult() {
+  const text = document.getElementById('resultText').textContent;
+  window.open(text, '_blank');
+}
+
+function shareResult() {
+  const text = document.getElementById('resultText').textContent;
+  if (navigator.share) {
+    navigator.share({ title: '掃描結果', text });
+  } else {
+    copyResult();
+  }
+}
+
+function clearResult() {
+  lastResult = null;
+  document.getElementById('resultType').textContent = '等待中';
+  document.getElementById('resultText').textContent = '尚未掃描任何條碼';
+  document.getElementById('resultText').style.color = 'var(--muted)';
+  document.getElementById('resultActions').style.display = 'none';
+  document.getElementById('resultTime').textContent = '';
+}
+
+async function toggleTorch() {
+  if (!torchTrack) return;
+  torchOn = !torchOn;
+  try {
+    await torchTrack.applyConstraints({ advanced: [{ torch: torchOn }] });
+    document.getElementById('torchBtn').classList.toggle('on', torchOn);
+  } catch(e) { flash('手電筒不支援'); torchOn = false; }
+}
+
+function vibrate() {
+  try { navigator.vibrate && navigator.vibrate(40); } catch(e) {}
+}
+
+function showError(e) {
+  const msg = e.name === 'NotAllowedError' ? '相機權限被拒絕，請在瀏覽器設定中允許' :
+              e.name === 'NotFoundError' ? '找不到相機裝置' :
+              e.message || '啟動相機失敗';
+  document.getElementById('camStatus').textContent = '⚠ ' + msg;
+}
+
+function flash(msg) {
+  const el = document.getElementById('flashMsg');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  setTimeout(() => el.style.opacity = '0', 1400);
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (!history.length) {
+    container.innerHTML = '<div class="history-empty">尚無記錄<br><span style="font-size:12px;">掃描後會自動儲存</span></div>';
+    return;
+  }
+  container.innerHTML = history.map((item, i) => `
+    <div class="history-item" onclick="useHistoryItem(${i})">
+      <div class="hi-top">
+        <span class="hi-badge">${formatLabel(item.format)}</span>
+        <span class="hi-time">${new Date(item.time).toLocaleDateString('zh-TW')} ${timeStr(new Date(item.time))}</span>
+      </div>
+      <div class="hi-text">${escHtml(item.text)}</div>
+    </div>
+  `).join('');
+}
+
+function useHistoryItem(i) {
+  const item = history[i];
+  switchPage('scan');
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.remove('active');
+  showResult(item.text, item.format, new Date(item.time));
+}
+
+function clearHistory() {
+  if (!history.length) return;
+  history = [];
+  localStorage.setItem('scanHistory', '[]');
+  renderHistory();
+  flash('記錄已清除');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// PWA Install
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
